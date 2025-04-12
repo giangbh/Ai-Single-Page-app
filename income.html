@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Visualizer</title>
+    <!-- Tailwind CSS Script -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React, ReactDOM, PropTypes, Babel, Recharts, PapaParse, Lodash Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.1.16/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        /* Basic styling */
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .recharts-text { fill: #333; }
+        .recharts-legend-item-text { color: #333 !important; }
+        .recharts-tooltip-wrapper { border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 10; }
+        input[type="file"] { display: none; }
+        .file-upload-label { display: inline-block; padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        .file-upload-label:hover { background-color: #2563eb; }
+        .filter-input, .filter-select, .filter-number-input { width: 100%; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem; font-size: 0.875rem; line-height: 1.25rem; }
+        .filter-input:focus, .filter-select:focus, .filter-number-input:focus { outline: 2px solid transparent; outline-offset: 2px; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
+        /* Make bars clickable */
+        .recharts-bar-cursor { cursor: pointer; }
+        .recharts-bar-rectangle, .recharts-cell { transition: opacity 0.2s; }
+        .recharts-bar-cursor:hover .recharts-bar-rectangle,
+        .recharts-bar-cursor:hover .recharts-cell { opacity: 0.85; }
+        .close-button { padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #ef4444; color: white; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.2s; }
+        .close-button:hover { background-color: #dc2626; }
+        .recharts-pie-label-text { fill: #333 !important; font-size: 0.8rem;}
+        /* Export buttons styling */
+        .export-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 0.5rem;
+        }
+        .export-button:hover {
+            background-color: #4338ca;
+        }
+        .export-button svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .export-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        /* Chart container for export */
+        .chart-export-container {
+            position: fixed;
+            left: -9999px;
+            top: -9999px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <!-- Google Font Link -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Root element for React app -->
+    <div id="root"></div>
+
+    <!-- React rendering logic inside window.onload -->
+    <script type="text/babel">
+      window.onload = () => {
+        // Check if libraries are loaded
+        if ( typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof PropTypes === 'undefined' || typeof Recharts === 'undefined' || typeof Papa === 'undefined' || typeof _ === 'undefined' || typeof tailwind === 'undefined' ) {
+            console.error("One or more required libraries failed to load.");
+            const rootElement = document.getElementById('root');
+            if (rootElement) { rootElement.innerHTML = '<div class="p-4 m-4 text-red-700 bg-red-100 border border-red-300 rounded-lg text-center">Error: Required libraries failed to load. Check connection/console (F12) and refresh.</div>'; }
+            if (typeof React === 'undefined') console.error('React failed to load.');
+            if (typeof ReactDOM === 'undefined') console.error('ReactDOM failed to load.');
+            if (typeof PropTypes === 'undefined') console.error('PropTypes failed to load.');
+            if (typeof Recharts === 'undefined') console.error('Recharts failed to load.');
+            if (typeof Papa === 'undefined') console.error('PapaParse failed to load.');
+            if (typeof _ === 'undefined') console.error('Lodash failed to load.');
+            if (typeof tailwind === 'undefined') console.error('Tailwind CSS failed to load.');
+            return;
+        }
+
+        const { useState, useEffect, useMemo, Fragment } = React;
+        const { LineChart, Line, BarChart, Bar, Cell, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+        // --- Helper Functions ---
+        const formatCurrency = (value, decimals = 0) => { if (value == null || isNaN(value)) return '-'; return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value); };
+        const formatDateTime = (date) => { if (!date || !(date instanceof Date) || isNaN(date)) { return '-'; } return date.toLocaleString('vi-VN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: false }); };
+
+        // --- PIT Calculation Function (Simplified Gross-Up) ---
+        const calculateGrossIncomeFromNet = (netIncome, numDependents) => {
+            if (netIncome == null || isNaN(netIncome) || netIncome <= 0) { return { gross: 0, pit: 0, net: 0 }; }
+            const pd = 11000000; const dd = 4400000;
+            const totalDeductions = pd + (Math.max(0, numDependents) * dd);
+            if (netIncome <= totalDeductions) { return { gross: netIncome, pit: 0, net: netIncome }; }
+            const tnctqd = netIncome; let gross = 0;
+            if (tnctqd <= 4750000) { gross = tnctqd / 0.95; }
+            else if (tnctqd <= 9250000) { gross = (tnctqd - 250000) / 0.9; }
+            else if (tnctqd <= 16050000) { gross = (tnctqd - 750000) / 0.85; }
+            else if (tnctqd <= 27250000) { gross = (tnctqd - 1650000) / 0.8; }
+            else if (tnctqd <= 42250000) { gross = (tnctqd - 3250000) / 0.75; }
+            else if (tnctqd <= 61850000) { gross = (tnctqd - 5850000) / 0.7; }
+            else { gross = (tnctqd - 9850000) / 0.65; }
+            gross = Math.max(gross, netIncome); const pit = gross - netIncome;
+            return { gross: Math.round(gross), pit: Math.round(pit), net: netIncome };
+        };
+
+        // --- TransactionVisualizer Component ---
+        const TransactionVisualizer = ({ fileContent }) => {
+          // --- State ---
+          const [rawData, setRawData] = useState([]);
+          const [loading, setLoading] = useState(false);
+          const [error, setError] = useState(null);
+          const [identFilter, setIdentFilter] = useState('A32_HRM');
+          const [tcmtFilter, setTcmtFilter] = useState('');
+          const [etcFilter, setEtcFilter] = useState('all');
+          const [numDependents, setNumDependents] = useState(0);
+          const [timeGrouping, setTimeGrouping] = useState('month');
+          const [chartType, setChartType] = useState('bar');
+          const [dateRange, setDateRange] = useState({ start: null, end: null });
+          const [selectedPeriod, setSelectedPeriod] = useState(null);
+          const [detailedTransactions, setDetailedTransactions] = useState([]);
+          const [uniqueEtcs, setUniqueEtcs] = useState([]);
+          const [periodTaxData, setPeriodTaxData] = useState(null);
+
+          // Define colors
+          const COLOR_GREEN = '#10b981'; const COLOR_BLUE = '#3b82f6'; const COLOR_RED = '#ef4444';
+          const COLOR_NET = '#3b82f6'; const COLOR_TAX = '#f97316'; const COLOR_GROSS = '#8b5cf6';
+
+          // --- Effects ---
+          // Effect to parse CSV data
+          useEffect(() => {
+            if (!fileContent) {
+              setRawData([]); setIdentFilter(''); setTcmtFilter(''); setEtcFilter('all'); setNumDependents(0);
+              setSelectedPeriod(null); setPeriodTaxData(null); setUniqueEtcs([]);
+              setDateRange({ start: null, end: null }); setLoading(false); setError(null);
+              return;
+            }
+            setLoading(true); setError(null); setIdentFilter('A32_HRM'); setTcmtFilter(''); setEtcFilter('all'); setNumDependents(0);
+            setSelectedPeriod(null); setPeriodTaxData(null); setUniqueEtcs([]);
+
+            try {
+              Papa.parse(fileContent, {
+                header: true, dynamicTyping: true, skipEmptyLines: true,
+                complete: (results) => {
+                   if (results.errors && results.errors.length > 0) { setError(`Lỗi phân tích CSV: ${results.errors[0].message}. Kiểm tra định dạng gần dòng ${results.errors[0].row}. Cột mong đợi: CDT, IDENT, TCMT, TAMT, ETC.`); setLoading(false); setRawData([]); return; }
+                   if (!results.meta.fields || !results.meta.fields.includes('CDT') || !results.meta.fields.includes('TAMT')) { setError("Lỗi: CSV phải chứa cột 'CDT' (ngày) và 'TAMT' (số tiền)."); setLoading(false); setRawData([]); return; }
+                   const processed = results.data.map((row, index) => {
+                    let amount = row.TAMT; if (typeof amount === 'string') amount = parseFloat(String(amount).replace(/[^0-9.-]+/g, '')); else if (typeof amount !== 'number') amount = NaN;
+                    let date = null, month = null, quarter = null, year = null; let originalCDT = row.CDT || '';
+                    if (row.CDT) {
+                        const dateStr = String(row.CDT); date = new Date(dateStr);
+                        if (!date || isNaN(date.getTime())) { let dateParts = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (dateParts) date = new Date(parseInt(dateParts[3]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2])); else { dateParts = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (dateParts) date = new Date(parseInt(dateParts[1]), parseInt(dateParts[2]) - 1, parseInt(dateParts[3])); } }
+                        if (!date || isNaN(date.getTime())) { console.warn(`Invalid date at row ${index + 1}: ${row.CDT}. Skipping.`); date = null; } else { month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; quarter = `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`; year = date.getFullYear().toString(); }
+                    } else { console.warn(`Missing date (CDT) at row ${index + 1}. Skipping.`); }
+                    return { ...row, CDT_Original: originalCDT, IDENT: row.IDENT != null ? String(row.IDENT) : '', TCMT: row.TCMT != null ? String(row.TCMT) : '', ETC: row.ETC != null ? String(row.ETC) : '', TAMT: isNaN(amount) ? 0 : amount, date, month, quarter, year, id: `row_${index}` };
+                   }).filter(row => row.date !== null && !isNaN(row.TAMT));
+                   if (processed.length === 0 && results.data.length > 0) { setError("Không có dữ liệu hợp lệ sau khi xử lý. Kiểm tra giá trị 'CDT'/'TAMT' hoặc định dạng ngày."); setLoading(false); setRawData([]); return; } else if (processed.length === 0) { setError("Không tìm thấy dữ liệu hợp lệ trong tệp CSV."); setLoading(false); setRawData([]); return; }
+                   setRawData(processed); const etcValues = _.uniq(processed.map(item => item.ETC).filter(Boolean)); setUniqueEtcs(etcValues.sort());
+                   const validDates = processed.map(item => item.date.getTime()); if (validDates.length > 0) setDateRange({ start: new Date(Math.min(...validDates)), end: new Date(Math.max(...validDates)) }); setLoading(false);
+                }, error: (error) => { console.error("PapaParse File Error:", error); setError(`Lỗi đọc hoặc phân tích tệp: ${error.message}`); setLoading(false); setRawData([]); }
+              });
+            } catch (error) { console.error("Data Processing Error:", error); setError(`Lỗi không mong muốn: ${error.message}`); setLoading(false); setRawData([]); }
+          }, [fileContent]);
+
+          // --- Memoized Calculations ---
+          // Calculate aggregated data for charts (Net for Q/Y, Net+PIT+Gross for Month)
+          // RENAMED back to processedData
+          const processedData = useMemo(() => {
+            if (!rawData || rawData.length === 0) return [];
+            const lowerIdentFilter = identFilter.toLowerCase().trim();
+            const lowerTcmtFilter = tcmtFilter.toLowerCase().trim();
+            let filteredData = rawData.filter(item => {
+                const identMatch = lowerIdentFilter === '' || (item.IDENT && item.IDENT.toLowerCase().includes(lowerIdentFilter));
+                const tcmtMatch = lowerTcmtFilter === '' || (item.TCMT && item.TCMT.toLowerCase().includes(lowerTcmtFilter));
+                const etcMatch = etcFilter === 'all' || item.ETC === etcFilter;
+                return identMatch && tcmtMatch && etcMatch;
+            });
+
+            const groupingKey = timeGrouping;
+            filteredData = filteredData.filter(item => item[groupingKey]);
+            const groupedData = _.groupBy(filteredData, item => item[groupingKey]);
+
+            const chartData = Object.keys(groupedData).map(key => {
+              const group = groupedData[key];
+              const netAmount = group.filter(item => item.TAMT > 0).reduce((sum, item) => sum + item.TAMT, 0);
+              const count = group.filter(item => item.TAMT > 0).length;
+
+              if (groupingKey === 'month') {
+                  const { gross, pit } = calculateGrossIncomeFromNet(netAmount, numDependents);
+                  return { period: key, netAmount: netAmount, pitAmount: pit, grossAmount: gross, count: count };
+              } else {
+                  return { period: key, totalAmount: netAmount, count: count }; // Use totalAmount for Q/Y
+              }
+            });
+            return chartData.sort((a, b) => a.period.localeCompare(b.period));
+          }, [rawData, identFilter, tcmtFilter, etcFilter, timeGrouping, numDependents]);
+
+          // Effect to filter detailed transactions (depends on processedData now)
+          useEffect(() => {
+              if (!selectedPeriod || !rawData || rawData.length === 0) {
+                  setDetailedTransactions([]);
+                  return;
+              }
+              const lowerIdentFilter = identFilter.toLowerCase().trim();
+              const lowerTcmtFilter = tcmtFilter.toLowerCase().trim();
+              const details = rawData.filter(item => {
+                  const periodMatch = item[timeGrouping] === selectedPeriod;
+                  const identMatch = lowerIdentFilter === '' || (item.IDENT && item.IDENT.toLowerCase().includes(lowerIdentFilter));
+                  const tcmtMatch = lowerTcmtFilter === '' || (item.TCMT && item.TCMT.toLowerCase().includes(lowerTcmtFilter));
+                  const etcMatch = etcFilter === 'all' || item.ETC === etcFilter;
+                  return periodMatch && identMatch && tcmtMatch && etcMatch;
+              });
+              details.sort((a, b) => a.date - b.date);
+              setDetailedTransactions(details);
+          }, [selectedPeriod, rawData, identFilter, tcmtFilter, etcFilter, timeGrouping]); // Removed processedData dependency here, it's based on rawData
+
+           // Effect to calculate Tax Data for the selected period (depends on processedData)
+           useEffect(() => {
+               if (selectedPeriod) {
+                   // Find the period data from the processedData (which has net/pit/gross for month)
+                   const periodData = processedData.find(p => p.period === selectedPeriod);
+                   if (periodData) {
+                       // If month view, net/pit/gross are already calculated
+                       if (timeGrouping === 'month') {
+                            setPeriodTaxData({
+                                net: periodData.netAmount,
+                                pit: periodData.pitAmount,
+                                gross: periodData.grossAmount
+                            });
+                       } else {
+                           // If Q/Y view, calculate tax based on the net amount (totalAmount)
+                           const netAmount = periodData.totalAmount;
+                           const taxInfo = calculateGrossIncomeFromNet(netAmount, numDependents);
+                           setPeriodTaxData(taxInfo);
+                       }
+                   } else {
+                       setPeriodTaxData(null);
+                   }
+               } else {
+                   setPeriodTaxData(null); // Clear if no period selected
+               }
+           }, [selectedPeriod, processedData, numDependents, timeGrouping]); // Added timeGrouping dependency
+
+
+          // Calculate overall summary (Net Amount)
+          const summary = useMemo(() => {
+              const lowerIdentFilter = identFilter.toLowerCase().trim();
+              const lowerTcmtFilter = tcmtFilter.toLowerCase().trim();
+              const filteredRawData = rawData.filter(item => {
+                  const identMatch = lowerIdentFilter === '' || (item.IDENT && item.IDENT.toLowerCase().includes(lowerIdentFilter));
+                  const tcmtMatch = lowerTcmtFilter === '' || (item.TCMT && item.TCMT.toLowerCase().includes(lowerTcmtFilter));
+                  const etcMatch = etcFilter === 'all' || item.ETC === etcFilter;
+                  return identMatch && tcmtMatch && etcMatch;
+              });
+              if (!filteredRawData || filteredRawData.length === 0) { return { totalAmount: 0 }; }
+              const totalAmount = filteredRawData.filter(item => item.TAMT > 0).reduce((sum, item) => sum + item.TAMT, 0);
+              return { totalAmount };
+          }, [rawData, identFilter, tcmtFilter, etcFilter]);
+
+          // --- Export Functions ---
+          const captureChart = async (chartRef) => {
+              if (!chartRef) return null;
+              
+              // Create a temporary container for the chart
+              const container = document.createElement('div');
+              container.className = 'chart-export-container';
+              document.body.appendChild(container);
+              
+              // Clone the chart into the container
+              const chartClone = chartRef.cloneNode(true);
+              container.appendChild(chartClone);
+              
+              try {
+                  // Wait for the chart to render
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  // Capture the chart as an image
+                  const canvas = await html2canvas(container, {
+                      backgroundColor: 'white',
+                      scale: 2, // Higher quality
+                      logging: false,
+                      useCORS: true
+                  });
+                  
+                  return canvas.toDataURL('image/png');
+              } finally {
+                  // Clean up
+                  document.body.removeChild(container);
+              }
+          };
+
+          const exportToPDF = async () => {
+              const { jsPDF } = window.jspdf;
+              const doc = new jsPDF();
+
+              // Add title
+              doc.setFontSize(16);
+              doc.text('Transaction Report', 14, 15);
+              doc.setFontSize(10);
+              doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
+
+              // Add summary section
+              doc.setFontSize(12);
+              doc.text('Summary', 14, 30);
+              doc.setFontSize(10);
+              doc.text(`Total Net Income: ${formatCurrency(summary.totalAmount)}`, 14, 37);
+
+              // Capture and add the main chart
+              const chartElement = document.querySelector('.recharts-wrapper');
+              if (chartElement) {
+                  const chartImage = await captureChart(chartElement);
+                  if (chartImage) {
+                      doc.addImage(chartImage, 'PNG', 14, 45, 180, 100);
+                  }
+              }
+
+              // Add transaction data table
+              const tableData = processedData.map(row => [
+                  row.period,
+                  formatCurrency(row.netAmount ?? row.totalAmount),
+                  row.count.toString()
+              ]);
+
+              doc.autoTable({
+                  startY: 160,
+                  head: [['Period', 'Net Amount', 'Transaction Count']],
+                  body: tableData,
+                  theme: 'grid',
+                  styles: { fontSize: 8 },
+                  headStyles: { fillColor: [79, 70, 229] }
+              });
+
+              // If there's a pie chart (tax analysis), add it to a new page
+              const pieChartElement = document.querySelector('.recharts-pie');
+              if (pieChartElement && periodTaxData) {
+                  doc.addPage();
+                  doc.setFontSize(12);
+                  doc.text('Tax Analysis', 14, 15);
+                  
+                  const pieChartImage = await captureChart(pieChartElement);
+                  if (pieChartImage) {
+                      doc.addImage(pieChartImage, 'PNG', 14, 25, 180, 180);
+                  }
+              }
+
+              // Save the PDF
+              doc.save('transaction-report.pdf');
+          };
+
+          const exportToExcel = async () => {
+              // Prepare data for export
+              const excelData = processedData.map(row => ({
+                  Period: row.period,
+                  'Net Amount': row.netAmount ?? row.totalAmount,
+                  'Transaction Count': row.count,
+                  ...(row.pitAmount ? {
+                      'Tax Amount': row.pitAmount,
+                      'Gross Amount': row.grossAmount
+                  } : {})
+              }));
+
+              // Create worksheet
+              const ws = XLSX.utils.json_to_sheet(excelData);
+
+              // Set column widths
+              const colWidths = [
+                  { wch: 15 }, // Period
+                  { wch: 15 }, // Net Amount
+                  { wch: 15 }, // Transaction Count
+                  { wch: 15 }, // Tax Amount
+                  { wch: 15 }  // Gross Amount
+              ];
+              ws['!cols'] = colWidths;
+
+              // Create workbook
+              const wb = XLSX.utils.book_new();
+              
+              // Add data worksheet
+              XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+
+              // Capture and add charts as images
+              const chartElement = document.querySelector('.recharts-wrapper');
+              if (chartElement) {
+                  const chartImage = await captureChart(chartElement);
+                  if (chartImage) {
+                      // Convert base64 to binary
+                      const binary = atob(chartImage.split(',')[1]);
+                      const array = new Uint8Array(binary.length);
+                      for (let i = 0; i < binary.length; i++) {
+                          array[i] = binary.charCodeAt(i);
+                      }
+                      
+                      // Add chart image to workbook
+                      wb.Pictures = wb.Pictures || [];
+                      wb.Pictures.push({
+                          name: 'MainChart',
+                          src: array,
+                          position: { type: 'twoCellAnchor', from: { col: 0, row: excelData.length + 2 }, colOff: 0, rowOff: 0, editAs: 'oneCell' },
+                          type: 'png'
+                      });
+                  }
+              }
+
+              // Save the file
+              XLSX.writeFile(wb, 'transaction-data.xlsx');
+          };
+
+          // --- Event Handlers ---
+          const handleIdentFilterChange = (e) => { setIdentFilter(e.target.value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleTcmtFilterChange = (e) => { setTcmtFilter(e.target.value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleEtcFilterChange = (e) => { setEtcFilter(e.target.value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleDependentsChange = (e) => { const value = parseInt(e.target.value, 10); setNumDependents(isNaN(value) || value < 0 ? 0 : value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleTimeGroupingChange = (e) => { setTimeGrouping(e.target.value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleChartTypeChange = (e) => { setChartType(e.target.value); setSelectedPeriod(null); setPeriodTaxData(null); };
+          const handleBarClick = (data, index) => { if (data && data.activePayload && data.activePayload.length > 0) { setSelectedPeriod(data.activePayload[0].payload.period); } };
+          const handleCloseDetailTable = () => { setSelectedPeriod(null); setPeriodTaxData(null); };
+
+          // --- Render Logic ---
+          if (loading) return <div className="flex items-center justify-center h-64 text-gray-600">Đang xử lý dữ liệu...</div>;
+          if (error) return <div className="p-4 m-4 text-red-700 bg-red-100 border border-red-300 rounded-lg">{error}</div>;
+          if (!loading && !error && (!rawData || rawData.length === 0)) { return <div className="p-4 m-4 text-gray-600 bg-gray-100 border border-gray-300 rounded-lg text-center">Vui lòng tải lên tệp CSV. Các cột mong đợi: CDT, IDENT, TCMT, TAMT, ETC.</div>; }
+          if (error && (!rawData || rawData.length === 0)) { return <div className="p-4 m-4 text-red-700 bg-red-100 border border-red-300 rounded-lg">{error}</div>; }
+
+          const taxPieData = periodTaxData && periodTaxData.pit > 0 ? [ { name: 'Thu nhập Net', value: periodTaxData.net }, { name: 'Thuế TNCN (ước tính)', value: periodTaxData.pit } ] : (periodTaxData ? [{ name: 'Thu nhập Net', value: periodTaxData.net }] : []);
+          const chartTitle = `Biểu đồ Thu nhập ${timeGrouping === 'month' ? 'Net/Gross' : 'Net'} theo ${timeGrouping === 'month' ? 'Tháng' : timeGrouping === 'quarter' ? 'Quý' : 'Năm'}`;
+
+          return (
+            <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  Công cụ Trực quan Giao dịch
+                </h1>
+                
+                {/* Export Section */}
+                {processedData && processedData.length > 0 && (
+                  <div className="export-section">
+                    <button
+                      className="export-button"
+                      onClick={exportToPDF}
+                      title="Export to PDF"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      Export PDF
+                    </button>
+                    <button
+                      className="export-button"
+                      onClick={exportToExcel}
+                      title="Export to Excel"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export Excel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Filter Controls Section */}
+              <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm"> <h2 className="text-lg font-semibold mb-3 text-gray-700">Tùy chọn Lọc & Tính thuế</h2> <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"> <div><label htmlFor="identFilterInput" className="block text-sm font-medium text-gray-600 mb-1">IDENT Chứa</label><input id="identFilterInput" type="text" className="filter-input" placeholder="Lọc theo IDENT..." value={identFilter} onChange={handleIdentFilterChange} /></div> <div><label htmlFor="tcmtFilterInput" className="block text-sm font-medium text-gray-600 mb-1">TCMT Chứa</label><input id="tcmtFilterInput" type="text" className="filter-input" placeholder="Lọc theo TCMT..." value={tcmtFilter} onChange={handleTcmtFilterChange} /></div> <div> <label htmlFor="etcFilterSelect" className="block text-sm font-medium text-gray-600 mb-1">ETC</label> <select id="etcFilterSelect" className="filter-select bg-white" value={etcFilter} onChange={handleEtcFilterChange} disabled={uniqueEtcs.length === 0}> <option value="all">Tất cả ETC</option> {uniqueEtcs.map((etc, index) => ( <option key={index} value={etc}>{etc}</option> ))} </select> </div> <div> <label htmlFor="dependentsInput" className="block text-sm font-medium text-gray-600 mb-1">Số người phụ thuộc</label> <input id="dependentsInput" type="number" min="0" step="1" className="filter-number-input" value={numDependents} onChange={handleDependentsChange} /> </div> <div><label htmlFor="timeGrouping" className="block text-sm font-medium text-gray-600 mb-1">Nhóm theo</label><select id="timeGrouping" className="filter-select bg-white" value={timeGrouping} onChange={handleTimeGroupingChange}><option value="month">Tháng</option><option value="quarter">Quý</option><option value="year">Năm</option></select></div> <div><label htmlFor="chartType" className="block text-sm font-medium text-gray-600 mb-1">Loại biểu đồ</label><select id="chartType" className="filter-select bg-white" value={chartType} onChange={handleChartTypeChange}> <option value="bar">Biểu đồ cột</option> <option value="line">Biểu đồ đường</option> </select></div> </div> </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6"> <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm"> <h3 className="text-blue-800 text-sm font-semibold mb-1">Tổng Thu nhập Net (Sau lọc)</h3> <p className="text-xl md:text-2xl font-bold text-blue-900">{formatCurrency(summary.totalAmount)}</p> </div> </div>
+
+              {/* Main Visualization (Conditional Chart) */}
+               {processedData && processedData.length > 0 ? (
+                  <div className="mb-6">
+                    <h2 className="text-lg font-semibold mb-3 text-gray-700">{chartTitle}</h2>
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-sm" style={{ height: '450px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        {timeGrouping === 'month' ? (
+                            // --- Monthly Stacked Bar Chart ---
+                            <BarChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }} onClick={handleBarClick} >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 11, fill: '#4b5563' }} />
+                                <YAxis tickFormatter={(value) => formatCurrency(value, 0)} tick={{ fontSize: 11, fill: '#4b5563' }} width={100} />
+                                <Tooltip formatter={(value, name, props) => { return `${formatCurrency(value)} (${name})`; }} content={({ active, payload, label }) => { if (active && payload && payload.length) { const data = payload[0].payload; return ( <div className="p-2 bg-white border border-gray-300 rounded shadow-sm"> <p className="font-bold text-gray-700">{label}</p> <p style={{ color: COLOR_NET }}>Net: {formatCurrency(data.netAmount)}</p> <p style={{ color: COLOR_TAX }}>Thuế (ước tính): {formatCurrency(data.pitAmount)}</p> <p style={{ color: COLOR_GROSS }}>Gross (ước tính): {formatCurrency(data.grossAmount)}</p> </div> ); } return null; }}/>
+                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                <Bar dataKey="netAmount" name="Thu nhập Net" fill={COLOR_NET} stackId="a" />
+                                <Bar dataKey="pitAmount" name="Thuế TNCN (ước tính)" fill={COLOR_TAX} stackId="a" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        ) : (
+                            // --- Quarterly/Yearly Chart (Bar or Line for Net Amount) ---
+                            chartType === 'bar' ? (
+                               <BarChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }} onClick={handleBarClick} >
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                  <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 11, fill: '#4b5563' }} />
+                                  <YAxis tickFormatter={(value) => formatCurrency(value, 0)} tick={{ fontSize: 11, fill: '#4b5563' }} width={100} />
+                                  <Tooltip formatter={(value) => formatCurrency(value, 0)} contentStyle={{ borderRadius: '0.375rem', borderColor: '#d1d5db' }} labelStyle={{ color: '#374151', fontWeight: 'bold' }} />
+                                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                  {/* Use totalAmount key for Q/Y */}
+                                  <Bar dataKey="totalAmount" name="Thu nhập Net" radius={[4, 4, 0, 0]}>
+                                    {processedData.map((entry, index) => { let fillColor; if (entry.totalAmount < 100000000) { fillColor = COLOR_GREEN; } else if (entry.totalAmount >= 300000000) { fillColor = COLOR_RED; } else { fillColor = COLOR_BLUE; } return <Cell key={`cell-${index}`} fill={fillColor} />; })}
+                                  </Bar>
+                               </BarChart>
+                            ) : ( // Line Chart for Q/Y
+                               <LineChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                  <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} interval={0} tick={{ fontSize: 11, fill: '#4b5563' }} />
+                                  <YAxis tickFormatter={(value) => formatCurrency(value, 0)} tick={{ fontSize: 11, fill: '#4b5563' }} width={100} />
+                                  <Tooltip formatter={(value) => formatCurrency(value, 0)} contentStyle={{ borderRadius: '0.375rem', borderColor: '#d1d5db' }} labelStyle={{ color: '#374151', fontWeight: 'bold' }} />
+                                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                                   {/* Use totalAmount key for Q/Y */}
+                                  <Line type="monotone" dataKey="totalAmount" name="Thu nhập Net" stroke={COLOR_BLUE} strokeWidth={2} activeDot={{ r: 6 }} dot={{ r: 3 }}/>
+                               </LineChart>
+                            )
+                        )}
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                ) : ( <div className="p-4 my-6 text-center text-gray-500 bg-gray-100 border border-gray-200 rounded-lg">Không có dữ liệu khớp với bộ lọc hiện tại.</div> )}
+
+              {/* --- Tax Analysis Section (Conditional) --- */}
+              {selectedPeriod && periodTaxData && (
+                  <div className="mt-8 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <div className="flex justify-between items-center mb-4"> <h2 className="text-lg font-semibold text-gray-700"> Phân tích Net/Gross (ước tính) cho kỳ {selectedPeriod} </h2> </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"> <div className="p-3 bg-blue-50 rounded-md"> <p className="text-sm font-medium text-blue-800">Thu nhập Net (tạm tính)</p> <p className="text-lg font-bold text-blue-900">{formatCurrency(periodTaxData.net)}</p> </div> <div className="p-3 bg-orange-50 rounded-md"> <p className="text-sm font-medium text-orange-800">Thuế TNCN (ước tính)</p> <p className="text-lg font-bold text-orange-900">{formatCurrency(periodTaxData.pit)}</p> </div> <div className="p-3 bg-purple-50 rounded-md"> <p className="text-sm font-medium text-purple-800">Thu nhập Gross (ước tính)</p> <p className="text-lg font-bold text-purple-900">{formatCurrency(periodTaxData.gross)}</p> </div> </div>
+                      <div style={{ height: '250px' }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                  <Pie data={taxPieData} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} >
+                                      {taxPieData.map((entry, index) => ( <Cell key={`cell-${index}`} fill={entry.name.includes('Net') ? COLOR_NET : COLOR_TAX} /> ))}
+                                  </Pie> <Tooltip formatter={(value) => formatCurrency(value, 0)} /> <Legend />
+                              </PieChart>
+                          </ResponsiveContainer>
+                      </div>
+                       <p className="text-xs text-gray-500 mt-4 italic"> * Lưu ý: Tính toán Thuế TNCN và Thu nhập Gross chỉ là ước tính dựa trên giảm trừ gia cảnh cho bản thân và người phụ thuộc, bỏ qua các yếu tố khác như bảo hiểm bắt buộc, các khoản giảm trừ/miễn thuế khác. Chỉ mang tính tham khảo. </p>
+                  </div>
+              )}
+
+              {/* Detailed Transaction Table (Conditional) */}
+              {selectedPeriod && (
+                  <div className="mt-8 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <div className="flex justify-between items-center mb-3"> <h2 className="text-lg font-semibold text-gray-700"> Giao dịch chi tiết cho kỳ {selectedPeriod} </h2> <button onClick={handleCloseDetailTable} className="close-button"> Đóng </button> </div>
+                      {detailedTransactions.length > 0 ? (
+                          <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                  <thead className="bg-gray-50"> <tr> <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày/Giờ</th> <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số tiền</th> <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diễn giải (TCMT)</th> <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETC</th> </tr> </thead>
+                                  <tbody className="bg-white divide-y divide-gray-200"> {detailedTransactions.map((tx, index) => ( <tr key={tx.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}> <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">{tx.CDT_Original || formatDateTime(tx.date)}</td> <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium ${tx.TAMT >= 0 ? 'text-blue-600' : 'text-red-600'}`}> {formatCurrency(tx.TAMT)} </td> <td className="px-4 py-2 text-sm text-gray-700">{tx.TCMT}</td> <td className="px-4 py-2 text-sm text-gray-700">{tx.ETC}</td> </tr> ))} </tbody>
+                              </table>
+                          </div>
+                      ) : ( <p className="text-sm text-gray-500 text-center py-4">Không tìm thấy giao dịch nào cho kỳ này với bộ lọc hiện tại.</p> )}
+                  </div>
+              )}
+
+              {/* Aggregated Data Table */}
+              {processedData && processedData.length > 0 && chartType !== 'pie' && (
+                <div className="mt-8">
+                  <h2 className="text-lg font-semibold mb-3 text-gray-700">Dữ liệu Tổng hợp ({timeGrouping === 'month' ? 'Tháng' : timeGrouping === 'quarter' ? 'Quý' : 'Năm'})</h2>
+                  <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50"> <tr> <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kỳ ({timeGrouping === 'month' ? 'Tháng' : timeGrouping === 'quarter' ? 'Quý' : 'Năm'})</th> <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng Thu nhập Net</th> <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng Giao dịch</th> </tr> </thead>
+                      {/* Updated table body to use correct data key based on grouping */}
+                      <tbody className="bg-white divide-y divide-gray-200">{processedData.map((row, index) => (
+                          <tr key={row.period || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.period}</td>
+                             {/* Use netAmount if month, otherwise totalAmount */}
+                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{formatCurrency(row.netAmount ?? row.totalAmount)}</td>
+                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{row.count}</td>
+                          </tr> ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        // --- App Component (Handles File Upload) ---
+        const App = () => {
+            const [fileContent, setFileContent] = useState(null);
+            const [fileName, setFileName] = useState('');
+            const [uploadError, setUploadError] = useState(null);
+            const handleFileChange = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv' && file.type !== 'application/vnd.ms-excel') { setUploadError('Loại tệp không hợp lệ. Vui lòng tải lên tệp CSV.'); setFileContent(null); setFileName(''); event.target.value = null; return; }
+                    setUploadError(null); setFileName(file.name);
+                    const reader = new FileReader(); reader.onload = (e) => setFileContent(e.target.result); reader.onerror = (e) => { console.error("FileReader error:", e); setUploadError("Lỗi đọc tệp."); setFileContent(null); setFileName(''); }
+                    reader.readAsText(file);
+                } else { setFileContent(null); setFileName(''); setUploadError(null); }
+            };
+            return ( <Fragment> {/* File Upload Section */} <div className="p-4 mb-4 bg-gray-100 border-b border-gray-300 sticky top-0 z-10 shadow-sm"> <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4"> <div className="flex items-center gap-2"> <label htmlFor="csvFileInput" className="file-upload-label">Tải lên CSV</label> <input id="csvFileInput" type="file" accept=".csv, text/csv" onChange={handleFileChange} /> {fileName && <span className="text-sm text-gray-600">Đã tải: {fileName}</span>} </div> {uploadError && <div className="text-sm text-red-600">{uploadError}</div>} <div className="text-xs text-gray-500">Cột mong đợi: CDT, IDENT, TCMT, TAMT, ETC</div> </div> </div> {/* Render the visualizer */} <TransactionVisualizer fileContent={fileContent} /> </Fragment> );
+        };
+
+        // --- Render the App ---
+        ReactDOM.render(<App />, document.getElementById('root'));
+      }; // End of window.onload
+    </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ Lọc Ý kiến Chi nhánh (Tối ưu + Highlight)</title>
+    <style>
+        /* CSS styles remain the same as the previous correct version */
+         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #343a40;
+            margin-bottom: 30px;
+        }
+        #controlsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #controlsContainer label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        #fileInput {
+            border: 1px solid #ced4da;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+         #fileInput::file-selector-button {
+            margin-right: 8px;
+            border: none;
+            background: #0d6efd;
+            padding: 6px 12px;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color .15s ease-in-out;
+         }
+         #fileInput::file-selector-button:hover {
+            background: #0b5ed7;
+         }
+        #filterInput {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            min-width: 250px;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        #status {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+            color: #6c757d;
+            min-height: 1.2em; /* Prevent layout shift */
+        }
+         #loadingIndicator {
+            display: none; /* Hidden by default */
+            margin-left: 10px;
+            font-weight: bold;
+            color: #0d6efd;
+         }
+        .table-container {
+            max-height: 70vh; /* Adjust height as needed */
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            table-layout: fixed; /* Helps with performance on large tables */
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.9em;
+            vertical-align: top;
+            word-wrap: break-word; /* Prevent long text from breaking layout */
+        }
+        th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: inset 0 -2px 0 #dee2e6;
+        }
+        /* Set initial column widths (adjust as needed) */
+        th:nth-child(1) { width: 5%; }  /* TT */
+        th:nth-child(2) { width: 40%; } /* Noi dung y kien */
+        th:nth-child(3) { width: 10%; } /* Phan loai */
+        th:nth-child(4) { width: 25%; } /* Phan Nhom... */
+        th:nth-child(5) { width: 20%; } /* Don vi... */
+
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        /* Class to hide rows */
+        .hidden-row {
+            display: none;
+        }
+        /* Style for highlighted text */
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+            /* Add padding/margin if needed, but often background is enough */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Công cụ Lọc Ý kiến Chi nhánh (Tối ưu + Highlight)</h1>
+
+    <div id="controlsContainer">
+        <div>
+            <label for="fileInput">Chọn file CSV (ykienchinhanh.csv):</label>
+            <input type="file" id="fileInput" accept=".csv">
+        </div>
+        <div>
+            <label for="filterInput">Lọc theo Nội dung ý kiến:</label>
+            <input type="text" id="filterInput" placeholder="Nhập nội dung cần tìm...">
+        </div>
+         <div id="status">Chọn file để hiển thị dữ liệu. <span id="loadingIndicator">Đang xử lý...</span></div>
+    </div>
+
+    <div class="table-container">
+        <table id="dataTable">
+            <thead>
+                <tr id="headerRow">
+                    <!-- Headers will be generated by JavaScript -->
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data rows will be generated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const filterInput = document.getElementById('filterInput');
+        const tableHeader = document.getElementById('headerRow');
+        const tableBody = document.getElementById('tableBody');
+        const statusDiv = document.getElementById('status');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let headers = [];
+        let tableRowsCache = [];
+        let noiDungColumnIndex = -1;
+        let debounceTimer;
+
+        fileInput.addEventListener('change', handleFileSelect);
+        filterInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performFiltering, 250);
+        });
+
+        // ---- Helper Function to Escape Regex Chars ----
+        function escapeRegExp(string) {
+          return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        }
+
+        // ---- File Handling ----
+         function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                statusDiv.textContent = 'Chưa có file nào được chọn.';
+                clearTable();
+                return;
+            }
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                 statusDiv.textContent = 'Lỗi: Vui lòng chọn file có định dạng .csv';
+                 clearTable();
+                 fileInput.value = '';
+                 return;
+            }
+
+            statusDiv.textContent = `Đang đọc file: ${file.name}...`;
+            loadingIndicator.style.display = 'inline';
+            clearTable();
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    requestAnimationFrame(() => { // Defer parsing/rendering slightly
+                        const parsedData = parseCSV(text); // parseCSV returns { headers, data, rowsFragment }
+                        if (parsedData) {
+                            headers = parsedData.headers;
+                            // Find the column index *before* rendering
+                            noiDungColumnIndex = headers.findIndex(header => header.toLowerCase().trim() === 'nội dung ý kiến');
+                            if (noiDungColumnIndex === -1) {
+                                 console.error("Không tìm thấy cột 'Nội dung ý kiến'");
+                                 // Decide how to handle - maybe disable filtering? For now, just warn.
+                            }
+                             // Pass the fragment to renderTable
+                            renderTable(headers, parsedData.data, parsedData.rowsFragment);
+                            statusDiv.textContent = `Đã tải và hiển thị ${tableRowsCache.length} dòng từ file ${file.name}.`;
+                            if (noiDungColumnIndex === -1) {
+                                 statusDiv.textContent += " Cảnh báo: Không tìm thấy cột 'Nội dung ý kiến' để lọc.";
+                             }
+                             if (filterInput.value) {
+                                performFiltering();
+                            }
+                        } else {
+                            statusDiv.textContent = 'Lỗi: Không thể phân tích file CSV.';
+                        }
+                        loadingIndicator.style.display = 'none';
+                    });
+                } catch (error) {
+                    console.error("Lỗi khi đọc hoặc phân tích file:", error);
+                    statusDiv.textContent = `Lỗi: ${error.message}`;
+                    clearTable();
+                    loadingIndicator.style.display = 'none';
+                }
+            };
+
+            reader.onerror = function(e) {
+                console.error("Lỗi khi đọc file:", e);
+                statusDiv.textContent = 'Lỗi khi đọc file.';
+                clearTable();
+                loadingIndicator.style.display = 'none';
+            };
+
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // --- CSV Parsing (stores original text in data attribute) ---
+         function parseCSV(text) {
+             const lines = text.trim().split('\n');
+             if (lines.length === 0) return null;
+
+             const headerLine = lines[0].startsWith('\ufeff') ? lines[0].substring(1) : lines[0];
+             const localHeaders = headerLine.split(';').map(h => h.trim());
+             const data = [];
+             const fragment = document.createDocumentFragment();
+             // Find index *during* parsing to set data attribute correctly
+            const tempNoiDungIndex = localHeaders.findIndex(h => h.toLowerCase().trim() === 'nội dung ý kiến');
+
+            for (let i = 1; i < lines.length; i++) {
+                 const line = lines[i].trim();
+                 if (line === '') continue;
+                 const values = line.split(';');
+                 const rowObject = {};
+                 const tr = document.createElement('tr');
+
+                for (let j = 0; j < localHeaders.length; j++) {
+                     const cellValue = values[j] ? values[j].trim() : '';
+                     rowObject[localHeaders[j]] = cellValue;
+                     const td = document.createElement('td');
+                     td.textContent = cellValue;
+                     // ----> Store original text if it's the target column <----
+                     if (j === tempNoiDungIndex) {
+                         td.dataset.originalText = cellValue; // Store it
+                     }
+                     tr.appendChild(td);
+                 }
+                 data.push(rowObject);
+                 fragment.appendChild(tr);
+             }
+             return { headers: localHeaders, data: data, rowsFragment: fragment };
+        }
+
+        // --- Table Rendering (remains the same as previous optimized version) ---
+         function renderTable(headers, data, rowsFragment) {
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+            tableRowsCache = [];
+
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                tableHeader.appendChild(th);
+            });
+
+            if (!rowsFragment || data.length === 0) {
+                 // ... (empty table handling) ...
+                 const tr = document.createElement('tr');
+                 const td = document.createElement('td');
+                 td.colSpan = headers.length;
+                 td.textContent = 'Không có dữ liệu để hiển thị.';
+                 td.style.textAlign = 'center';
+                 tr.appendChild(td);
+                 tableBody.appendChild(tr);
+            } else {
+                tableBody.appendChild(rowsFragment);
+                tableRowsCache = Array.from(tableBody.children);
+            }
+        }
+
+        // --- Filtering Logic (with highlighting) ---
+        function performFiltering() {
+             if (noiDungColumnIndex === -1) {
+                 console.warn("Chưa xác định được cột 'Nội dung ý kiến' để lọc/highlight.");
+                return; // Can't filter or highlight without the index
+            }
+
+            loadingIndicator.style.display = 'inline';
+             requestAnimationFrame(() => {
+                 const filterValue = filterInput.value.trim(); // Keep original case for regex, but trim
+                 const filterValueLower = filterValue.toLowerCase(); // For matching
+                 let visibleRowCount = 0;
+
+                 tableRowsCache.forEach(row => {
+                    const cell = row.cells[noiDungColumnIndex];
+                    if (cell) {
+                        const originalText = cell.dataset.originalText || cell.textContent || ''; // Fallback
+
+                        // Determine visibility first
+                        const isMatch = filterValueLower === '' || originalText.toLowerCase().includes(filterValueLower);
+
+                        if (isMatch) {
+                             row.classList.remove('hidden-row');
+                             visibleRowCount++;
+
+                             // Apply highlighting only if there's a filter value
+                             if (filterValue !== '') {
+                                 try {
+                                     // Escape the filter value for use in regex
+                                     const escapedFilterValue = escapeRegExp(filterValue);
+                                     // Create case-insensitive, global regex
+                                     const regex = new RegExp(escapedFilterValue, 'gi');
+                                     // Replace matches with highlighted span
+                                     cell.innerHTML = originalText.replace(regex, match => `<span class="highlight">${match}</span>`);
+                                 } catch (e) {
+                                     console.error("Error creating/using regex for highlighting:", e);
+                                     cell.innerHTML = originalText; // Fallback to original text on regex error
+                                 }
+                             } else {
+                                 // No filter value, ensure original text is displayed (remove highlights)
+                                 cell.innerHTML = originalText;
+                             }
+                        } else {
+                            row.classList.add('hidden-row');
+                             // Also reset content when hiding to remove old highlights
+                             cell.innerHTML = originalText;
+                         }
+                    } else {
+                         row.classList.remove('hidden-row'); // Default show if cell missing
+                     }
+                });
+
+                statusDiv.textContent = `Đang hiển thị ${visibleRowCount} / ${tableRowsCache.length} dòng.`;
+                loadingIndicator.style.display = 'none';
+            });
+        }
+
+        // --- Utility Functions (clearTable remains the same) ---
+         function clearTable() {
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+            headers = [];
+            tableRowsCache = [];
+            noiDungColumnIndex = -1;
+            filterInput.value = '';
+        }
+
+    </script>
+
+</body>
+</html>

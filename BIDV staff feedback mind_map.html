@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng hợp Ý kiến Phản ánh - Mind Map</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; /* Remove default margin */
+            padding: 10px;
+            background-color: #f8f9fa;
+            display: flex; /* Use flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            min-height: 100vh; /* Ensure takes full viewport height */
+            box-sizing: border-box;
+        }
+        #mindmap-container {
+             width: 95%; /* Adjust width as needed */
+             height: 90vh; /* Adjust height as needed */
+             border: 1px solid #ccc;
+             background-color: #fff;
+             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+             overflow: hidden; /* Hide scrollbars if SVG fits */
+        }
+        svg.markmap {
+            width: 100%;
+            height: 100%;
+            display: block; /* Remove extra space below SVG */
+        }
+         /* Optional: Style for nodes */
+        .markmap-node text {
+            font-size: 13px; /* Adjust font size */
+        }
+    </style>
+    <!-- Load Markmap assets from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.15.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.15.4"></script>
+</head>
+<body>
+    <div id="mindmap-container">
+        <svg id="mindmap" style="width: 100%; height: 100%;"></svg>
+    </div>
+
+    <!-- Markdown data embedded -->
+    <script type="text/template" id="markdown-data">
+# Tổng hợp Ý kiến Phản ánh (ykienchinhanh.csv)
+
+## A. Thực hiện Công việc & Quy trình
+### Khối lượng Công việc & Áp lực
+- Quá tải công việc chung (đặc biệt GDV, QLKH).
+- Kiêm nhiệm nhiều vai trò, công việc không liên quan.
+- Áp lực KPI cao, chỉ tiêu không thực tế (BHNT, SMB...).
+- Thiếu chuyên môn hóa công việc.
+- Mất cân bằng công việc - cuộc sống (làm ngoài giờ, cuối tuần).
+- Phân công công việc không đồng đều, thiếu công bằng.
+- Cần mô tả công việc rõ ràng hơn giữa các bộ phận.
+
+### Quy trình Nghiệp vụ & Mô hình CTOM/RLOS
+- Quy trình phức tạp, rườm rà, nhiều khâu (đặc biệt tín dụng).
+- Mô hình CTOM: làm chậm tiến độ, tăng việc cho QLKH/QLRR, khó bố trí nhân sự.
+- RLOS: tăng tác nghiệp, nhập liệu nhiều, hay lỗi, chậm.
+- Cần tách bạch/làm rõ vai trò các bộ phận (CSR, Hỗ trợ TD, QLKH, QTTD...).
+- Lãnh đạo phòng/PGD không nên trực tiếp quản lý KH.
+
+### Tuân thủ & Rủi ro
+- Có trường hợp làm chưa đúng quy định do yêu cầu linh hoạt/áp lực.
+- Rủi ro do GDV/QLKH làm quá nhiều việc.
+
+## B. Công cụ, CNTT & Cơ sở vật chất
+### Hệ thống CNTT & Phần mềm Ứng dụng
+- Quá nhiều ứng dụng, phần mềm rời rạc, không đồng bộ.
+- Hệ thống thường xuyên lỗi, chậm, treo (RLOS, BPM, Core, iBank, SMB, ECM, H2H...).
+- Khó khăn trong khai thác dữ liệu, báo cáo (nhiều nguồn, thủ công).
+- Giao diện chưa thân thiện, khó sử dụng.
+- Hệ thống VBCĐ khó tra cứu, cập nhật chậm, thiếu khoa học.
+- Hạ tầng mạng (Internet, Wifi) chậm, không ổn định.
+- Dung lượng email thấp, hay lỗi proxy.
+
+### Công cụ & Trang thiết bị làm việc
+- Máy tính cũ, cấu hình thấp, chậm, thiếu dung lượng, cấp phát/thay thế chậm.
+- Máy in, máy scan thiếu, hay hỏng, thiếu mực.
+- Thiếu các thiết bị chuyên dụng (máy tính bảng, điện thoại công việc, thiết bị STH).
+- Thiếu xe công tác/điều hàng.
+
+### Môi trường & Cơ sở vật chất
+- Không gian làm việc chật hẹp, chưa hợp lý (đặc biệt một số Ban/TT).
+- Chất lượng tiện ích kém (điều hòa, nước uống, vệ sinh, thang máy...).
+- Thiếu phòng họp, pantry, phòng vắt sữa.
+- Vấn đề chỗ để xe (xa, ẩm thấp).
+
+## C. Lương, Thưởng & Phúc lợi
+### Lương & Thu nhập
+- Lương thấp so với mặt bằng (Big4, NHCP khác, lạm phát, công chức).
+- Chưa tương xứng với khối lượng công việc, áp lực, rủi ro (đặc biệt QLKH, QLRR sau CTOM).
+- Chênh lệch lớn giữa HSC và Chi nhánh, giữa các Chi nhánh/Hạng CN.
+- Chênh lệch lớn giữa Lãnh đạo và Nhân viên.
+- Chênh lệch chưa hợp lý giữa Khối Kinh doanh và Khối Hỗ trợ/Tác nghiệp.
+- Cơ chế lương/xếp bậc chưa linh hoạt, chưa công bằng (thâm niên, luân chuyển).
+- Cần xem xét hệ số lương khu vực (TPHCM).
+- Thiếu chế độ làm thêm giờ cho một số bộ phận (QTTD, QLKH...).
+
+### Khen thưởng & KPI
+- Hệ thống KPI còn thủ công, nhập liệu nhiều, thiếu tự động hóa.
+- KPI chưa phản ánh đúng/đủ khối lượng, độ phức tạp công việc (việc không tên).
+- Đánh giá KPI còn cảm tính, thiếu khách quan, minh bạch.
+- Chỉ tiêu KPI (đặc biệt BHNT) chưa phù hợp, gây áp lực.
+- Thưởng doanh số chậm, cách tính phức tạp, quỹ thấp (Khối BB).
+- Cần công cụ theo dõi KPI real-time cho cán bộ.
+
+### Phúc lợi & Đãi ngộ
+- Phúc lợi chung (nghỉ mát, bảo hiểm BIC Care) cần cải thiện (quyền lợi thấp, phạm vi hẹp).
+- Thiếu phúc lợi cho người thân (bảo hiểm, quà tặng...).
+- Thiếu chế độ nghỉ phép linh hoạt/thanh toán phép dư.
+- Thiếu ưu đãi cho cán bộ (vay vốn, hưu trí tự nguyện khi nghỉ việc...).
+- Đồng phục còn bất cập (chất liệu, kiểu dáng).
+
+## D. Lãnh đạo & Quản lý
+### Năng lực & Thái độ Lãnh đạo
+- Một số lãnh đạo thiếu năng lực chuyên môn, quản trị điều hành.
+- Thiếu sâu sát, quan tâm, lắng nghe tâm tư nguyện vọng cán bộ.
+- Giao việc/đánh giá cảm tính, thiếu công bằng, thiên vị, bè phái.
+- Thái độ chưa chuẩn mực (quan liêu, hách dịch, mắng chửi...).
+- Thiếu nêu gương, tuân thủ giờ giấc, trách nhiệm.
+- Chỉ đạo không rõ ràng, thiếu nhất quán.
+
+### Phát triển & Đào tạo Cán bộ
+- Ít tạo cơ hội phát triển, học hỏi, trải nghiệm cho cấp dưới.
+- Thiếu định hướng nghề nghiệp rõ ràng.
+
+## E. Đào tạo & Phát triển Nguồn Nhân lực
+### Chất lượng & Hiệu quả Đào tạo
+- Đào tạo online nhiều nhưng không hiệu quả, hình thức.
+- Nội dung đào tạo chưa sát thực tế, thiếu chuyên sâu, kỹ năng mềm.
+- Thiếu đào tạo/hướng dẫn cho ứng dụng/quy trình mới.
+- Giảng viên nội bộ chưa đáp ứng yêu cầu một số khóa học.
+- Lịch đào tạo chưa hợp lý (cuối năm, trong giờ làm việc).
+- Khảo thí/khảo sát quá nhiều, hình thức.
+
+### Quy hoạch, Bổ nhiệm & Luân chuyển
+- Chưa công bằng, khách quan, minh bạch (cảm tính, bè phái, thiếu tiêu chuẩn rõ ràng).
+- Giới hạn tuổi quy hoạch/bổ nhiệm gây giảm động lực.
+- Luân chuyển chưa hợp lý (quá nhanh/quá chậm, không đúng sở trường/nguyện vọng, thiếu công bằng giữa các khu vực).
+- Thiếu cơ hội thăng tiến cho cán bộ có năng lực (đặc biệt cán bộ trẻ, cán bộ lâu năm không trong "phe").
+- Cần cơ chế "có lên có xuống" thay vì tại vị đến nghỉ hưu.
+
+## F. Phối hợp & Văn hóa Doanh nghiệp
+### Phối hợp Công việc
+- Phối hợp giữa các Ban/TT HSC với CN còn chậm, đùn đẩy, khó liên hệ đầu mối.
+- Phối hợp giữa các phòng ban trong CN còn cứng nhắc, thiếu hỗ trợ (đặc biệt giữa Front và Back).
+- Phối hợp với các ĐVTV (BIC) còn chậm.
+- Quy trình/thủ tục phối hợp còn rườm rà, nặng giấy tờ.
+
+### Văn hóa Doanh nghiệp
+- Môi trường làm việc áp lực, căng thẳng, toxic, drama.
+- Văn hóa doanh nghiệp chưa rõ nét, thiếu gắn kết.
+- Hoạt động phong trào còn hình thức, mang tính ép buộc (BIDVRUN).
+- Kiểm soát tác phong (đồng phục, giờ giấc) quá mức, gây gò bó.
+
+## G. Ý kiến chung & Khác
+- Tốc độ cải tiến chung còn chậm.
+- Cần tinh gọn bộ máy, quy trình.
+- Công tác kiểm tra, giám sát cần hiệu quả hơn.
+- Khó khăn trong việc báo cáo (nhiều, trùng lặp, thủ công).
+    </script>
+
+    <script>
+        (function() {
+            const { Transformer } = markmap;
+            const { Markmap, loadCSS, loadJS } = markmap;
+
+            // Get the markdown content from the script tag
+            const markdown = document.getElementById('markdown-data').textContent;
+
+            // Transform markdown to markmap data structure
+            const transformer = new Transformer();
+            const { root, features } = transformer.transform(markdown);
+
+            // Get the assets (CSS, JS) required by the features used in the markdown
+            const assets = transformer.getAssets();
+
+            // Load the CSS and JS assets
+            if (assets.styles) loadCSS(assets.styles);
+            if (assets.scripts) loadJS(assets.scripts, { getMarkmap: () => markmap });
+
+            // Create the mindmap visualization
+            Markmap.create('#mindmap', null, root); // Use the SVG element directly
+
+            console.log("Mind map generated.");
+        })();
+    </script>
+</body>
+</html>
