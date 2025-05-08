@@ -73,6 +73,19 @@
             </h1>
         </header>
 
+
+        <!-- Milestone Filter/Search Controls -->
+        <div class="flex flex-wrap gap-2 mb-4 items-center justify-center bg-white p-3 rounded shadow">
+            <select id="filterCategory" class="border rounded px-2 py-1 text-sm">
+                <option value="">Tất cả hạng mục</option>
+            </select>
+            <select id="filterOwner" class="border rounded px-2 py-1 text-sm">
+                <option value="">Tất cả đơn vị</option>
+            </select>
+            <input id="searchName" type="text" class="border rounded px-2 py-1 text-sm" placeholder="Tìm kiếm theo tên..." />
+            <button id="clearFilterBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm">Xóa lọc</button>
+        </div>
+
         <main id="timeline-main-container">
             <div class="grid grid-cols-4 text-center mb-0 rounded-t-lg overflow-hidden">
                 <div class="font-semibold p-2.5 bg-sky-600 text-white text-sm sm:text-base border-r border-sky-700">Quý I (T1-T3)</div>
@@ -99,21 +112,21 @@
             // Dữ liệu các mốc golive
             const milestones = [
               { month: 2, shortName: "CĐCS Chiến lược", fullName: "Chỉ đạo điều chỉnh, cập nhật, bổ sung Chiến lược (T1-T3)", category: "Chiến lược CNTT", owner: "Ban Công nghệ" },
-              { month: 3, shortName: "Core Release", fullName: "Core Release tháng 3", category: "Core Release", owner: "Ban Công nghệ" },
+              { month: 3, shortName: "Core Release", fullName: "Core Release tháng 3", category: "Core Release", owner: "Ban Core" },
               { month: 3, shortName: "Bcash GĐ2", fullName: "Golive Bcash GĐ 2", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 3, shortName: "Payment Hub GĐ1", fullName: "Golive Payment Hub GĐ 1", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 5, shortName: "AIO Teller P1", fullName: "Golive All In One Teller phase 1", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 5, shortName: "Core Thẻ GĐ2", fullName: "Golive Core thẻ GĐ 2", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
-              { month: 6, shortName: "Core Release", fullName: "Core Release tháng 6", category: "Core Release", owner: "Ban Công nghệ" },
+              { month: 6, shortName: "Core Release", fullName: "Core Release tháng 6", category: "Core Release", owner: "Ban Core" },
               { month: 7, shortName: "BCGS Chiến lược", fullName: "Báo cáo giám sát Chiến lược", category: "Chiến lược CNTT", owner: "Ban Công nghệ" },
               { month: 7, shortName: "Bank 2.0", fullName: "Golive Bank 2.0", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 7, shortName: "MBnB GĐ2", fullName: "Golive MBnB GĐ 2", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 7, shortName: "Payment Hub GĐ2", fullName: "Golive Payment Hub GĐ 2", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
-              { month: 9, shortName: "Core Release", fullName: "Core Release tháng 9", category: "Core Release", owner: "Ban Công nghệ" },
+              { month: 9, shortName: "Core Release", fullName: "Core Release tháng 9", category: "Core Release", owner: "Ban Core" },
               { month: 10, shortName: "Core CN Yangon", fullName: "Golive Core Banking tại CN Yangon", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 10, shortName: "SCF GĐ1", fullName: "Golive dự án SCF GĐ 1", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 10, shortName: "FX Hub", fullName: "Golive FX Hub", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
-              { month: 11, shortName: "Core Release", fullName: "Core Release tháng 11", category: "Core Release", owner: "Ban Công nghệ" },
+              { month: 11, shortName: "Core Release", fullName: "Core Release tháng 11", category: "Core Release", owner: "Ban Core" },
               { month: 11, shortName: "AIO Teller P2", fullName: "Golive All In One Teller phase 2", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 11, shortName: "Core Thẻ GĐ3", fullName: "Golive Core thẻ GĐ 3", category: "Core Banking & Dự án", owner: "Ban Công nghệ và các Ban QLDA" },
               { month: 12, shortName: "BCGS Chiến lược", fullName: "Báo cáo giám sát Chiến lược", category: "Chiến lược CNTT", owner: "Ban Công nghệ" },
@@ -224,18 +237,56 @@ function loadMilestones() {
     }
 }
 
+// --- Milestone Filtering & Rendering ---
+let filterCategory = '';
+let filterOwner = '';
+let searchName = '';
+
 function renderMilestones() {
     // Xóa hết milestone hiện tại
     for (let i = 1; i <= 12; i++) {
         const lane = document.getElementById(`month-lane-${i}`);
         if (lane) lane.innerHTML = '';
     }
-    milestonesData.forEach((milestone, idx) => {
+    // Lọc dữ liệu
+    let filtered = milestonesData.filter(m => {
+        const matchCategory = !filterCategory || m.category === filterCategory;
+        const matchOwner = !filterOwner || m.owner === filterOwner;
+        const matchName = !searchName || m.shortName.toLowerCase().includes(searchName) || m.fullName.toLowerCase().includes(searchName);
+        return matchCategory && matchOwner && matchName;
+    });
+    filtered.forEach((milestone, idx) => {
         const lane = document.getElementById(`month-lane-${milestone.month}`);
         if (lane) {
-            const milestoneElement = createMilestoneElement(milestone, idx);
+            const milestoneElement = createMilestoneElement(milestone, milestonesData.indexOf(milestone));
             lane.appendChild(milestoneElement);
         }
+    });
+}
+// --- Populate Filter Options ---
+function populateMilestoneFilters() {
+    const categorySet = new Set();
+    const ownerSet = new Set();
+    milestonesData.forEach(m => {
+        categorySet.add(m.category);
+        ownerSet.add(m.owner);
+    });
+    const filterCategoryEl = document.getElementById('filterCategory');
+    const filterOwnerEl = document.getElementById('filterOwner');
+    // Clear old options except first
+    filterCategoryEl.length = 1;
+    filterOwnerEl.length = 1;
+    Array.from(categorySet).sort().forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        filterCategoryEl.appendChild(opt);
+    });
+    Array.from(ownerSet).sort().forEach(owner => {
+        const opt = document.createElement('option');
+        opt.value = owner;
+        opt.textContent = owner;
+        filterOwnerEl.appendChild(opt);
     });
 }
 
@@ -421,7 +472,31 @@ milestoneForm.onsubmit = (e) => {
 
 // Init
 loadMilestones();
+populateMilestoneFilters();
 renderMilestones();
+
+// --- Filter/Search Event Listeners ---
+document.getElementById('filterCategory').addEventListener('change', function() {
+    filterCategory = this.value;
+    renderMilestones();
+});
+document.getElementById('filterOwner').addEventListener('change', function() {
+    filterOwner = this.value;
+    renderMilestones();
+});
+document.getElementById('searchName').addEventListener('input', function() {
+    searchName = this.value.trim().toLowerCase();
+    renderMilestones();
+});
+document.getElementById('clearFilterBtn').addEventListener('click', function() {
+    filterCategory = '';
+    filterOwner = '';
+    searchName = '';
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterOwner').value = '';
+    document.getElementById('searchName').value = '';
+    renderMilestones();
+});
         });
     </script>
 </body>
