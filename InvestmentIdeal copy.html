@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề xuất Phương án Đầu tư - Dự án Minh Tân, Kiến Thụy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Màu nền nhẹ nhàng */
+            color: #1a202c; /* Màu chữ chính */
+        }
+
+        .slide-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .slide-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px; /* Bo góc mềm mại hơn */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem; /* Tăng padding */
+            margin-bottom: 2rem;
+        }
+
+        .table-header th {
+            background-color: #2c5282; /* Màu xanh đậm cho header bảng */
+            color: white;
+            padding: 0.75rem 1rem; /* Điều chỉnh padding */
+            text-align: left;
+        }
+        .table-header th:first-child {
+            border-top-left-radius: 8px;
+        }
+        .table-header th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .table-row td {
+            padding: 0.75rem 1rem; /* Điều chỉnh padding */
+            border-bottom: 1px solid #e2e8f0; /* Đường kẻ mỏng giữa các hàng */
+        }
+
+        .table-row:last-child td {
+            border-bottom: none;
+        }
+        .table-row:nth-child(even) {
+            background-color: #f7fafc; /* Màu nền xen kẽ cho hàng */
+        }
+
+        .highlight-value {
+            color: #2c5282; /* Màu xanh đậm cho các giá trị quan trọng */
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 1.75rem; /* Tăng kích thước tiêu đề mục */
+            font-weight: 700;
+            color: #2d3748; /* Màu xám đậm cho tiêu đề mục */
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #2c5282; /* Đường gạch chân cho tiêu đề mục */
+            padding-bottom: 0.5rem;
+        }
+
+        .main-title {
+            font-size: 2.5rem; /* Kích thước lớn cho tiêu đề chính */
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(90deg, #2c5282, #2a69ac); /* Gradient nền cho tiêu đề */
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .list-item {
+            position: relative;
+            padding-left: 1.75rem; /* Khoảng cách cho icon */
+            margin-bottom: 0.75rem; /* Khoảng cách giữa các mục */
+            font-size: 1.1rem; /* Tăng kích thước chữ */
+        }
+        .list-item::before {
+            content: '✔'; /* Biểu tượng checkmark */
+            position: absolute;
+            left: 0;
+            color: #38a169; /* Màu xanh lá cho checkmark */
+            font-weight: bold;
+        }
+
+        /* Nút điều hướng (nếu cần) */
+        .nav-button {
+            background-color: #2c5282;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            font-weight: 500;
+        }
+        .nav-button:hover {
+            background-color: #2a69ac;
+        }
+
+        /* Responsive table */
+        .table-container {
+            overflow-x: auto; /* Cho phép cuộn ngang trên màn hình nhỏ */
+        }
+
+    </style>
+</head>
+
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="slide-in">
+            <h1 class="main-title">
+                ĐỀ XUẤT PHƯƠNG ÁN ĐẦU TƯ<br>
+                <span class="text-2xl font-medium">DỰ ÁN MINH TÂN, KIẾN THỤY</span>
+            </h1>
+        </header>
+
+        <section id="phuong-an" class="card slide-in">
+            <h2 class="section-title">1. Phương án thực hiện</h2>
+            <ul class="space-y-3">
+                <li class="list-item">Mua lại dự án qua hình thức chuyển nhượng cổ phần của Công ty dự án.</li>
+                <li class="list-item">Hai Bên ký thỏa thuận chuyển nhượng cổ phần. Số tiền thanh toán từng đợt tương ứng với tỷ lệ cổ phần chuyển nhượng từng đợt.</li>
+                <li class="list-item">Bên mua hoàn thành các thủ tục tách Công ty dự án để chuyển nhượng cổ phần Công ty dự án.</li>
+                <li class="list-item">Bên bán hỗ trợ Bên mua để thực hiện các thủ tục pháp lý đến khi đạt được Quyết định nghiệm thu hạ tầng, đủ điều kiện bán hàng và cấp số lô đất NOXH (Nhà ở xã hội).</li>
+            </ul>
+        </section>
+
+        <section id="gia-tri" class="card slide-in">
+            <h2 class="section-title">2. Đề xuất Giá trị chuyển nhượng và tiến độ thanh toán</h2>
+
+            <div class="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg shadow-sm slide-in">
+                <p class="text-lg mb-2">
+                    <span class="font-semibold">Dự kiến giá chuyển nhượng hiện trạng là:</span>
+                    <span class="text-2xl font-bold text-blue-700">500 tỉ đồng</span>
+                </p>
+                <p class="text-md text-gray-700">
+                    (Đơn giá quy đổi/m² thương phẩm là: <span class="font-semibold">20.162.000 đồng/m²</span>)
+                </p>
+            </div>
+
+            <div class="mb-8 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm slide-in">
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">Giá nhận chuyển nhượng thực tế được tính như sau:</h3>
+                <p class="text-lg text-center p-4 bg-white rounded-md shadow border border-gray-300">
+                    <code class="font-mono text-gray-700">Giá nhận chuyển nhượng thực tế = Giá bán dự kiến – Các khoản công nợ – Khoản vay + Các khoản phải thu</code>
+                </p>
+            </div>
+
+            <div class="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg shadow-sm slide-in">
+                <p class="text-lg">
+                    <span class="font-semibold">Số tiền thanh toán thực tế dự kiến:</span>
+                    <span class="text-2xl font-bold text-green-700">~ 352 tỷ đồng</span>
+                </p>
+                <p class="text-sm text-gray-600">(Theo bảng chi tiết dưới đây)</p>
+            </div>
+
+
+            <div class="slide-in mb-10 table-container">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Bảng chi tiết giá trị:</h3>
+                <table class="min-w-full shadow-md rounded-lg overflow-hidden">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="w-1/12">STT</th>
+                            <th class="w-6/12">Nội dung</th>
+                            <th class="w-5/12 text-right">Số tiền (đồng)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-row">
+                            <td>1</td>
+                            <td>Đơn giá/m² gồm hạ tầng</td>
+                            <td class="text-right highlight-value">20,162,750</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td>2</td>
+                            <td>Tổng giá trị chuyển nhượng</td>
+                            <td class="text-right highlight-value">597,596,090,634</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td>3</td>
+                            <td>Giá trị hạ tầng (Dự kiến)</td>
+                            <td class="text-right">130,000,000,000</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td>4</td>
+                            <td>Đã thanh toán nhà thầu</td>
+                            <td class="text-right">32,403,909,366</td>
+                        </tr>
+                        <tr class="table-row bg-yellow-100 font-semibold">
+                            <td></td>
+                            <td>Giá trị dự án theo hiện trạng</td>
+                            <td class="text-right text-yellow-700">500,000,000,000</td>
+                        </tr>
+                         <tr class="table-row bg-yellow-100 font-semibold">
+                            <td></td>
+                            <td>Giá trị mua không hạ tầng</td>
+                            <td class="text-right text-yellow-700">467,596,090,634</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td>5</td>
+                            <td>Tiền vay (Cả tiền đất và hạ tầng)</td>
+                            <td class="text-right">147,403,909,366</td>
+                        </tr>
+                        <tr class="table-row bg-green-100 font-bold">
+                            <td>6</td>
+                            <td>Thành tiền mua CP thực tế (2-3+4-5)</td>
+                            <td class="text-right text-green-700 text-xl">352,596,090,634</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="slide-in table-container">
+                <h3 class="text-xl font-semibold mb-4 text-gray-800">Tiến độ thanh toán tiền thực:</h3>
+                <table class="min-w-full shadow-md rounded-lg overflow-hidden">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="w-1/12">Đợt</th>
+                            <th class="w-4/12">Điều kiện thanh toán</th>
+                            <th class="w-2/12 text-center">Tỷ lệ</th>
+                            <th class="w-3/12 text-right">Số tiền (tỷ đồng)</th>
+                            <th class="w-2/12">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-row">
+                            <td class="text-center">1</td>
+                            <td>Đặt cọc, ký Thỏa thuận chuyển nhượng</td>
+                            <td class="text-center">-</td>
+                            <td class="text-right highlight-value">30</td>
+                            <td></td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="text-center">2</td>
+                            <td>Trong vòng 30 ngày kể từ Đợt 1</td>
+                            <td class="text-center">Đến 65%</td>
+                            <td class="text-right highlight-value">~ 230</td>
+                            <td>Tách Cty dự án, Thay đổi Đại diện pháp luật</td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="text-center">3</td>
+                            <td>Trong vòng 60 ngày kể từ Đợt 1</td>
+                            <td class="text-center">Đến 85%</td>
+                            <td class="text-right highlight-value">~ 300</td>
+                            <td></td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="text-center">4</td>
+                            <td>Trong vòng 90 ngày kể từ Đợt 1</td>
+                            <td class="text-center">Đến 100%</td>
+                            <td class="text-right highlight-value">352</td>
+                            <td>Nghiệm thu hạ tầng, đủ ĐK bán hàng</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- Nút xuất PDF đặt trước footer -->
+        <div class="text-center my-8 slide-in">
+            <button onclick="exportToPDF()" class="nav-button">
+                Xuất PDF
+            </button>
+        </div>
+
+        <footer class="text-center mt-12 mb-6 slide-in">
+            <p class="text-gray-600">Trân trọng cảm ơn sự chú ý của quý vị!</p>
+        </footer>
+
+    </div>
+
+</script>
+    <!-- Thư viện html2pdf.js để xuất PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        // JavaScript cho hiệu ứng slide-in khi cuộn
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1 // Kích hoạt khi 10% phần tử hiển thị
+        });
+
+        document.querySelectorAll('.slide-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // JavaScript cho smooth scroll (nếu có nút điều hướng)
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Hàm xuất PDF
+        function exportToPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin:       0.3,
+                filename:     'De-xuat-phuong-an-dau-tu.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+
+</html>
