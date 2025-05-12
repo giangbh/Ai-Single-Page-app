@@ -292,34 +292,29 @@
              <div class="key-changes-pillar" data-pillar="application">
                  <h4 class="key-changes-pillar-title">Application Layer Optimizations</h4>
                  <div class="key-changes-details">
-                     <p class="mb-2"><strong>Code Refactoring and Algorithm Improvements:</strong> Tối ưu hóa các thuật toán xử lý giao dịch, giảm độ phức tạp của mã nguồn, loại bỏ các bottleneck trong luồng xử lý chính.</p>
-                     <p class="mb-2"><strong>Caching Strategies:</strong> Triển khai các lớp caching hiệu quả ở các tầng khác nhau (ví dụ: Redis, Memcached) để giảm tải cho database và tăng tốc độ truy xuất dữ liệu thường xuyên sử dụng.</p>
-                     <p class="mb-2"><strong>Asynchronous Processing:</strong> Chuyển đổi các tác vụ không yêu cầu phản hồi ngay lập tức (ví dụ: gửi thông báo, xử lý batch) sang mô hình bất đồng bộ sử dụng message queues (ví dụ: Kafka, RabbitMQ) để giải phóng tài nguyên xử lý online.</p>
-                     <p class="mb-2"><strong>Microservices Adoption/Refinement:</strong> Chia nhỏ các module lớn thành các dịch vụ nhỏ hơn, độc lập, dễ quản lý và mở rộng. Tối ưu hóa giao tiếp giữa các microservices.</p>
-                     <p><strong>API Performance Tuning:</strong> Tối ưu hóa hiệu suất các API public và internal, giảm thiểu thời gian phản hồi và tăng khả năng chịu tải thông qua profiling và tuning.</p>
+                     <p class="mb-2"><strong>Optimize data synchronization process from Core:</strong> 99% of data is synchronized from Core to MQ/Kafka within less than 1 second.</p>
+                     <p class="mb-2"><strong>Optimize accounting process:</strong> Remove redundant steps and logic, reducing response time to below 5ms.</p>
+                     <p class="mb-2"><strong>Optimize sequence generation in EOD accounting:</strong> Improve sequence generation to reduce DTX and TGL conflicts.</p>
+                     <p><strong>Follow lean core roadmap:</strong> Gradually decouple Payment, GL, and CIF modules from the core system.</p>
                  </div>
              </div>
 
              <div class="key-changes-pillar" data-pillar="database">
                  <h4 class="key-changes-pillar-title">Database Layer Optimizations</h4>
                  <div class="key-changes-details">
-                     <p class="mb-2"><strong>Indexing Strategy Review and Optimization:</strong> Phân tích và tạo/điều chỉnh các index hiệu quả cho các truy vấn thường xuyên, loại bỏ các index không cần thiết gây overhead.</p>
-                     <p class="mb-2"><strong>Query Optimization and Tuning:</strong> Phân tích các truy vấn chậm (slow queries), viết lại hoặc tối ưu hóa cấu trúc truy vấn để giảm thời gian thực thi.</p>
-                     <p class="mb-2"><strong>Database Partitioning:</strong> Chia nhỏ các bảng dữ liệu lớn thành các partition nhỏ hơn dựa trên tiêu chí phù hợp (ví dụ: thời gian, khu vực) để cải thiện hiệu suất truy vấn và quản lý dữ liệu.</p>
-                     <p class="mb-2"><strong>Connection Pooling Tuning:</strong> Tối ưu hóa cấu hình connection pool để quản lý hiệu quả số lượng kết nối đến database, tránh tình trạng quá tải hoặc thiếu hụt kết nối.</p>
-                     <p class="mb-2"><strong>Replication and Sharding Strategies:</strong> Triển khai hoặc tối ưu hóa các giải pháp replication (Master-Replica) và sharding để phân tán tải đọc/ghi và tăng khả năng mở rộng.</p>
-                     <p><strong>Database Server Configuration Tuning:</strong> Tinh chỉnh các tham số cấu hình của database server (ví dụ: bộ nhớ cache, buffer sizes) để phù hợp với workload của hệ thống.</p>
+                     <p class="mb-2"><strong>Optimize region for read/write of TGLMON process:</strong> Redesign and optimize the region to increase read/write speed for the Transaction Log Monitor (TGLMON) process, minimizing contention and maximizing throughput.</p>
+                     <p class="mb-2"><strong>Optimize epoch interval for more efficient data push to database files:</strong> Adjust the epoch interval appropriately to ensure data is written to database files efficiently, reducing latency and improving write performance.</p>
+                     <p class="mb-2"><strong>Optimize file system and volume group:</strong> Optimize the structure of the file system and volume group to ensure balanced I/O allocation, reduce bottlenecks, and increase storage scalability.</p>
+                     <p><strong>Redesign file system and region to optimize AIX file system cache:</strong> Redesign the file system and region to fully leverage the caching capabilities of the AIX operating system, increasing data access speed and reducing storage system load.</p>
                  </div>
              </div>
 
              <div class="key-changes-pillar" data-pillar="infra">
                  <h4 class="key-changes-pillar-title">Infrastructure Layer Optimizations</h4>
                  <div class="key-changes-details">
-                     <p class="mb-2"><strong>Hardware Upgrades:</strong> Nâng cấp CPU, RAM, ổ cứng (ưu tiên SSD tốc độ cao) cho các server ứng dụng và database.</p>
-                     <p class="mb-2"><strong>Network Optimization:</strong> Tối ưu hóa cấu hình mạng, băng thông, giảm độ trễ giữa các thành phần hệ thống (ứng dụng, database, cache servers).</p>
-                     <p class="mb-2"><strong>Load Balancing and Auto-scaling:</strong> Triển khai hoặc tối ưu hóa các giải pháp load balancing để phân phối tải đồng đều trên các server ứng dụng. Cấu hình auto-scaling để tự động điều chỉnh số lượng server dựa trên tải thực tế.</p>
-                     <p class="mb-2"><strong>Virtualization/Containerization Benefits:</strong> Tận dụng hiệu quả các nền tảng ảo hóa (VMware, KVM) hoặc container (Docker, Kubernetes) để quản lý tài nguyên linh hoạt và tối ưu hóa việc sử dụng phần cứng.</p>
-                     <p><strong>Monitoring and Alerting Improvements:</strong> Cài đặt và tinh chỉnh các công cụ giám sát hiệu suất (performance monitoring tools) cho toàn bộ stack (ứng dụng, database, server, network) và cấu hình các cảnh báo (alerts) sớm để phát hiện và xử lý sự cố kịp thời.</p>
+                     <p class="mb-2"><strong>Monitor and Alerting:</strong> Build comprehensive monitoring tools for the entire core system, covering transactions, database, online processes, batch, EOD, etc., to enable timely detection and resolution of issues.</p>
+                     <p class="mb-2"><strong>Extract MSGLOG realtime to Elasticsearch:</strong> Export MSGLOG in near real-time to Elasticsearch for fast and flexible log searching and analysis.</p>
+                     <p><strong>Continuous performance testing on lab environments:</strong> Regularly conduct performance testing in lab environments on both AIX and Linux platforms to ensure optimal system operation and cross-platform compatibility.</p>
                  </div>
              </div>
         </div>
