@@ -194,6 +194,7 @@
             <button id="online-tab-btn" class="tab-button active">Online</button>
             <button id="eod-tab-btn" class="tab-button">EOD</button>
             <button id="key-changes-tab-btn" class="tab-button">Key Changes</button>
+            <button id="fis-issues-tab-btn" class="tab-button">Discussion Topics</button>
             <button id="table-tab-btn" class="tab-button">Table</button>
         </div>
 
@@ -281,7 +282,27 @@
             </div>
         </div>
 
+
+        <div id="fis-issues-view" class="tab-content">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Discussion Topics with FIS</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-3">
+                <li><strong>STF POST Performance:</strong> Review and address current performance bottlenecks in STF POST operations.</li>
+                <li><strong>AIX Benchmark/Best Practice:</strong> Discuss and align on AIX system benchmarks and best practices for optimal performance.</li>
+                <li><strong>Kafka Native Interface:</strong> Explore and evaluate the adoption of Kafka's native interface for improved integration and throughput.</li>
+                <li><strong>Continue Discussion from Last Emerald:</strong>
+                    <ul class="list-disc pl-6 mt-2 space-y-1">
+                        <li>Expert in area</li>
+                        <li>Client forum</li>
+                        <li>Core team and Client network</li>
+                        <li>Roadmap</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
         <div id="key-changes-view" class="tab-content">
+
+
              <h3 class="text-xl font-semibold mb-4 text-gray-800">Key Optimizations and Changes</h3>
 
              <div class="key-changes-chart-container">
@@ -1014,10 +1035,12 @@
         const onlineTabBtn = document.getElementById('online-tab-btn');
         const eodTabBtn = document.getElementById('eod-tab-btn');
         const keyChangesTabBtn = document.getElementById('key-changes-tab-btn'); // Get Key Changes tab button
+        const fisIssuesTabBtn = document.getElementById('fis-issues-tab-btn');
         const tableTabBtn = document.getElementById('table-tab-btn');
         const onlineView = document.getElementById('online-view');
         const eodView = document.getElementById('eod-view');
         const keyChangesView = document.getElementById('key-changes-view'); // Get Key Changes view
+        const fisIssuesView = document.getElementById('fis-issues-view');
         const tableView = document.getElementById('table-view');
 
         const exportPdfBtn = document.getElementById('export-pdf-btn');
@@ -1035,40 +1058,45 @@
             onlineTabBtn.classList.remove('active');
             eodTabBtn.classList.remove('active');
             keyChangesTabBtn.classList.remove('active'); // Reset Key Changes tab style
+            fisIssuesTabBtn.classList.remove('active');
             tableTabBtn.classList.remove('active');
 
             // Hide all views
             onlineView.style.display = 'none';
             eodView.style.display = 'none';
             keyChangesView.style.display = 'none'; // Hide Key Changes view
+            fisIssuesView.style.display = 'none';
             tableView.style.display = 'none';
 
             // Activate selected tab and show its view
             if (tab === 'online') {
                 onlineTabBtn.classList.add('active');
                 onlineView.style.display = 'block';
-                 exportPdfBtn.style.display = 'inline-block'; // Show export button
-                 renderActiveTabCharts('online'); // Render charts for online tab
+                exportPdfBtn.style.display = 'inline-block'; // Show export button
+                renderActiveTabCharts('online'); // Render charts for online tab
             } else if (tab === 'eod') {
                 eodTabBtn.classList.add('active');
                 eodView.style.display = 'block';
-                 exportPdfBtn.style.display = 'inline-block'; // Show export button
-                 renderActiveTabCharts('eod'); // Render charts for EOD tab
+                exportPdfBtn.style.display = 'inline-block'; // Show export button
+                renderActiveTabCharts('eod'); // Render charts for EOD tab
             } else if (tab === 'key-changes') { // Handle Key Changes tab
                 keyChangesTabBtn.classList.add('active');
                 keyChangesView.style.display = 'block';
-                 exportPdfBtn.style.display = 'inline-block'; // Show export button
-                 renderActiveTabCharts('key-changes'); // Render pie chart for Key Changes
-                 // Initially hide all details in Key Changes tab
-                 keyChangesView.querySelectorAll('.key-changes-details').forEach(detail => detail.style.display = 'none');
-
-            }
-            else if (tab === 'table') {
+                exportPdfBtn.style.display = 'inline-block'; // Show export button
+                renderActiveTabCharts('key-changes'); // Render pie chart for Key Changes
+                // Initially hide all details in Key Changes tab
+                keyChangesView.querySelectorAll('.key-changes-details').forEach(detail => detail.style.display = 'none');
+            } else if (tab === 'fis-issues') {
+                fisIssuesTabBtn.classList.add('active');
+                fisIssuesView.style.display = 'block';
+                exportPdfBtn.style.display = 'inline-block';
+                destroyCharts(); // No charts in FIS Issues view
+            } else if (tab === 'table') {
                 tableTabBtn.classList.add('active');
                 tableView.style.display = 'block';
-                 exportPdfBtn.style.display = 'inline-block'; // Show export button
-                 destroyCharts(); // No charts in table view
-                 renderTable(); // Render table
+                exportPdfBtn.style.display = 'inline-block'; // Show export button
+                destroyCharts(); // No charts in table view
+                renderTable(); // Render table
             }
         }
 
@@ -1076,6 +1104,7 @@
         onlineTabBtn.addEventListener('click', () => switchTab('online'));
         eodTabBtn.addEventListener('click', () => switchTab('eod'));
         keyChangesTabBtn.addEventListener('click', () => switchTab('key-changes')); // Add event listener for Key Changes tab
+        fisIssuesTabBtn.addEventListener('click', () => switchTab('fis-issues'));
         tableTabBtn.addEventListener('click', () => switchTab('table'));
 
 
