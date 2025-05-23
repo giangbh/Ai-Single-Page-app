@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng CoF Nâng cao - Tiền gửi Thông minh (Mở rộng Quy mô)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* gray-50 */
+        }
+        .input-group { margin-bottom: 1.25rem; }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151; /* gray-700 */
+            font-size: 0.875rem;
+        }
+        .input-group input[type="text"], .input-group select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #D1D5DB; /* gray-300 */
+            border-radius: 0.375rem;
+            box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+        }
+        .input-group input[type="text"]:focus, .input-group select:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #2563EB; /* blue-600 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .input-group input[type="range"] {
+            width: 100%;
+            height: 0.5rem; /* h-2 */
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e5e7eb; /* gray-200 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+        }
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+            background: #2563EB; /* blue-600 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .input-group input[type="range"]::-moz-range-thumb {
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+            background: #2563EB; /* blue-600 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .slider-input-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* space-x-3 */
+        }
+        .slider-input-container input[type="text"] {
+             width: 10rem; /* w-40, adjust as needed */
+             text-align: right;
+        }
+
+
+        .result-item { padding: 0.75rem 0; border-bottom: 1px solid #E5E7EB; }
+        .result-item:last-child { border-bottom: none; }
+        .result-label { font-weight: 600; color: #1F2937; }
+        .result-value { color: #10B981; font-weight: 500; }
+        .error-message { color: #EF4444; font-size: 0.875rem; margin-top: 0.25rem; }
+        .info-tooltip {
+            position: relative; display: inline-block; cursor: pointer;
+            margin-left: 4px; color: #6b7280;
+        }
+        .info-tooltip .tooltiptext {
+            visibility: hidden; width: 250px; background-color: #374151;
+            color: #fff; text-align: left; border-radius: 6px; padding: 8px 10px;
+            position: absolute; z-index: 10; bottom: 135%; left: 50%;
+            margin-left: -125px; opacity: 0; transition: opacity 0.3s;
+            font-size: 0.75rem; font-weight: normal; line-height: 1.4;
+        }
+        .info-tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .section-title {
+            font-size: 1.25rem; font-weight: 600; color: #111827;
+            margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .subsection-title {
+            font-size: 1rem; font-weight: 600; color: #1f2937;
+            margin-top: 1.5rem; margin-bottom: 1rem;
+        }
+        .dynamic-section button { font-size: 0.875rem; padding: 0.5rem 1rem; }
+        .remove-btn {
+            background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;
+        }
+        .remove-btn:hover { background-color: #fecaca; }
+        .add-btn {
+            background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;
+        }
+        .add-btn:hover { background-color: #bfdbfe; }
+        .segment-card, .cd-product-card {
+            background-color: #fff; border: 1px solid #e5e7eb;
+            border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07);
+        }
+        /* Modal styles */
+        .modal {
+            display: none; position: fixed; z-index: 100; 
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 5% auto; padding: 25px;
+            border: 1px solid #888; width: 80%; max-width: 900px;
+            border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-height: 80vh; overflow-y: auto; 
+        }
+        .modal-header {
+            padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem;
+        }
+        .modal-title { font-size: 1.5rem; font-weight: 600; color: #111827; }
+        .close-button {
+            color: #aaa; float: right; font-size: 28px;
+            font-weight: bold; line-height: 1;
+        }
+        .close-button:hover, .close-button:focus {
+            color: black; text-decoration: none; cursor: pointer;
+        }
+        .help-section h4 {
+            font-size: 1.1rem; font-weight: 600; margin-top: 1rem;
+            margin-bottom: 0.5rem; color: #1f2937;
+        }
+        .help-section p, .help-section ul {
+            font-size: 0.9rem; line-height: 1.6; color: #4b5563; margin-bottom: 0.75rem;
+        }
+        .help-section ul { list-style-type: disc; padding-left: 1.5rem; }
+        .help-section code {
+            background-color: #f3f4f6; padding: 2px 4px; border-radius: 4px;
+            font-size: 0.85em; color: #c026d3; 
+        }
+        .help-section .formula {
+            background-color: #eef2ff; border-left: 3px solid #4f46e5; 
+            padding: 0.75rem; margin: 0.75rem 0; font-style: italic;
+        }
+        #geminiAnalysisResult {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* Light blue background */
+            border: 1px solid #7dd3fc; /* Sky blue border */
+            border-radius: 0.375rem;
+            white-space: pre-wrap; /* Preserve formatting from Gemini */
+            font-size: 0.9rem;
+            color: #075985; /* Darker blue text */
+        }
+        .loading-indicator {
+            display: none; /* Hidden by default */
+            text-align: center;
+            padding: 10px;
+            font-style: italic;
+            color: #3b82f6; /* Blue */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="container mx-auto max-w-6xl bg-white p-6 md:p-10 rounded-lg shadow-xl">
+        <header class="mb-6 text-center">
+            <h1 class="text-4xl font-bold text-gray-800">Mô phỏng Chi phí Vốn (CoF) Nâng cao</h1>
+            <p class="text-gray-600 mt-2 text-lg">Sản phẩm Tiền gửi Thông minh (Auto-earn) - Phiên bản chi tiết</p>
+        </header>
+        <div class="text-center mb-8">
+            <button id="openHelpModalBtn" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out">
+                Trợ giúp / Giải thích Mô hình
+            </button>
+        </div>
+
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-8">
+            <section id="inputSection" class="lg:col-span-2">
+                <h2 class="section-title">I. Thông số Đầu vào</h2>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                    <h3 class="subsection-title">1. Thông số Tài chính Hiện tại của Ngân hàng</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="totalFundingOld">Tổng nguồn vốn huy động hiện tại (VND)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Tổng giá trị các nguồn vốn mà ngân hàng đã huy động được từ tất cả các nguồn trước khi ra mắt sản phẩm mới này.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="totalFundingOld_slider" min="10000000000000" max="500000000000000" step="1000000000000">
+                                <input type="text" id="totalFundingOld" value="100000000000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="totalInterestExpenseOld">Tổng chi phí lãi phải trả hiện tại (VND/năm)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Tổng số tiền lãi mà ngân hàng phải trả hàng năm cho tất cả các nguồn vốn huy động hiện tại, trước khi có sản phẩm mới.</span></span>
+                            </label>
+                             <div class="slider-input-container">
+                                <input type="range" id="totalInterestExpenseOld_slider" min="100000000000" max="10000000000000" step="100000000000">
+                                <input type="text" id="totalInterestExpenseOld" value="3000000000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                    <h3 class="subsection-title">2. Tham số Chung của Sản phẩm Tiền gửi Thông minh</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="thresholdCASA">Ngưỡng CASA để chuyển sang CD (VND)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Số dư tối thiểu trong tài khoản CASA. Phần vượt trên ngưỡng này sẽ được xem xét để tự động chuyển sang tài khoản tiền gửi có kỳ hạn (CD).</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="thresholdCASA_slider" min="0" max="100000000" step="1000000">
+                                <input type="text" id="thresholdCASA" value="10000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                         <div class="input-group">
+                            <label for="rateCASA">Lãi suất CASA (%/năm)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Lãi suất trung bình hàng năm mà ngân hàng trả cho số dư trên tài khoản thanh toán (CASA). Nhập dạng số, ví dụ: 0.2 cho 0.2%.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="rateCASA_slider" min="0" max="5" step="0.01">
+                                <input type="text" id="rateCASA" value="0.2" data-format-type="rate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm dynamic-section">
+                    <h3 class="subsection-title">3. Phân khúc Khách hàng
+                        <span class="info-tooltip">ⓘ<span class="tooltiptext">Định nghĩa các nhóm khách hàng khác nhau với hành vi và đặc điểm riêng để ước tính chính xác hơn.</span></span>
+                    </h3>
+                    <div id="customerSegmentsContainer"></div>
+                    <button onclick="addCustomerSegment()" class="add-btn font-medium py-2 px-3 rounded-md shadow-sm mt-2">Thêm Phân khúc Khách hàng</button>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm dynamic-section">
+                    <h3 class="subsection-title">4. Danh mục Sản phẩm CD được tạo tự động
+                        <span class="info-tooltip">ⓘ<span class="tooltiptext">Định nghĩa các loại sản phẩm Tiền gửi có kỳ hạn (CD) mà hệ thống có thể tự động tạo ra, cùng với lãi suất và tỷ lệ phân bổ dự kiến.</span></span>
+                    </h3>
+                    <div id="cdProductsContainer"></div>
+                    <button onclick="addCdProduct()" class="add-btn font-medium py-2 px-3 rounded-md shadow-sm mt-2">Thêm Sản phẩm CD</button>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                    <h3 class="subsection-title">5. Tác động "Ăn mòn" CASA (Cannibalization)</h3>
+                    <div class="input-group">
+                        <label for="cannibalizationRate">Tỷ lệ CASA hiện hữu có thể chuyển sang CD (%)
+                            <span class="info-tooltip">ⓘ<span class="tooltiptext">Ước tính phần trăm CASA hiện tại (không phải phần tiền vượt ngưỡng của sản phẩm auto-earn) có thể bị chuyển đổi sang các sản phẩm CD khác của ngân hàng. Nhập dạng số, ví dụ: 1 cho 1%.</span></span>
+                        </label>
+                        <div class="slider-input-container">
+                            <input type="range" id="cannibalizationRate_slider" min="0" max="20" step="0.1">
+                            <input type="text" id="cannibalizationRate" value="1" data-format-type="percent">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="avgCasaBalanceForCannibalization">Số dư CASA bình quân của tài khoản bị "ăn mòn" (VND)
+                             <span class="info-tooltip">ⓘ<span class="tooltiptext">Số dư CASA trung bình của các tài khoản được cho là sẽ chuyển sang CD do hiệu ứng "ăn mòn".</span></span>
+                        </label>
+                        <div class="slider-input-container">
+                            <input type="range" id="avgCasaBalanceForCannibalization_slider" min="1000000" max="50000000" step="100000">
+                            <input type="text" id="avgCasaBalanceForCannibalization" value="5000000" data-format-type="vnd">
+                        </div>
+                    </div>
+                     <div class="input-group">
+                        <label for="numAccountsCannibalized">Số lượng tài khoản CASA bị "ăn mòn"
+                             <span class="info-tooltip">ⓘ<span class="tooltiptext">Số lượng tài khoản CASA dự kiến sẽ chuyển sang CD do hiệu ứng "ăn mòn".</span></span>
+                        </label>
+                        <div class="slider-input-container">
+                            <input type="range" id="numAccountsCannibalized_slider" min="0" max="50000" step="100">
+                            <input type="text" id="numAccountsCannibalized" value="1000" data-format-type="count">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                     <h3 class="subsection-title">6. Chi phí Hoạt động (Ước tính hàng năm)
+                        <span class="info-tooltip">ⓘ<span class="tooltiptext">Các chi phí phát sinh liên quan trực tiếp đến việc triển khai và vận hành sản phẩm tiền gửi thông minh mới.</span></span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="input-group">
+                            <label for="marketingCost">Chi phí Marketing (VND/năm)</label>
+                            <div class="slider-input-container">
+                                <input type="range" id="marketingCost_slider" min="0" max="5000000000" step="50000000">
+                                <input type="text" id="marketingCost" value="500000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="itCost">Chi phí Công nghệ (VND/năm)</label>
+                             <div class="slider-input-container">
+                                <input type="range" id="itCost_slider" min="0" max="10000000000" step="100000000">
+                                <input type="text" id="itCost" value="1000000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="hrCost">Chi phí Nhân sự phát sinh (VND/năm)</label>
+                            <div class="slider-input-container">
+                                <input type="range" id="hrCost_slider" min="0" max="2000000000" step="20000000">
+                                <input type="text" id="hrCost" value="200000000" data-format-type="vnd">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                    <h3 class="subsection-title">7. Giả định về Hành vi Khách hàng</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="cdRetentionRate">Tỷ lệ duy trì CD sau đáo hạn (%)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Phần trăm khách hàng sẽ tiếp tục gửi lại (roll-over) khoản CD được tạo tự động sau khi nó đáo hạn. Nhập dạng số, ví dụ: 70 cho 70%.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="cdRetentionRate_slider" min="0" max="100" step="1">
+                                <input type="text" id="cdRetentionRate" value="70" data-format-type="percent">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="earlyWithdrawalRate">Tỷ lệ CD rút trước hạn (%)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Phần trăm các khoản CD được tạo tự động có khả năng bị rút trước hạn. Khi đó, ngân hàng thường chỉ trả lãi suất không kỳ hạn (CASA rate). Nhập dạng số, ví dụ: 5 cho 5%.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="earlyWithdrawalRate_slider" min="0" max="100" step="1">
+                                <input type="text" id="earlyWithdrawalRate" value="5" data-format-type="percent">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg mb-6 shadow-sm">
+                    <h3 class="subsection-title">8. Tác động Mở rộng Quy mô & Cho vay (Nếu có)
+                        <span class="info-tooltip">ⓘ<span class="tooltiptext">Ước tính tác động nếu sản phẩm giúp thu hút thêm vốn mới và phần vốn này được cho vay ra.</span></span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="input-group">
+                            <label for="additionalFundingMobilized">Quy mô huy động vốn tăng thêm (VND)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Số tiền vốn mới hoàn toàn mà sản phẩm này dự kiến thu hút được, ngoài việc chuyển dịch từ CASA hiện hữu.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="additionalFundingMobilized_slider" min="0" max="50000000000000" step="1000000000000"> <input type="text" id="additionalFundingMobilized" value="0" data-format-type="vnd">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="amountLentFromNewFunds">Số tiền cho vay từ nguồn vốn mới (VND)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Tổng số tiền từ các nguồn vốn mới (bao gồm CASA chuyển đổi, CASA ăn mòn, và vốn huy động thêm) mà ngân hàng dự kiến cho vay ra.</span></span>
+                            </label>
+                             <div class="slider-input-container">
+                                <input type="range" id="amountLentFromNewFunds_slider" min="0" max="100000000000000" step="1000000000000"> <input type="text" id="amountLentFromNewFunds" value="0" data-format-type="vnd">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="avgLendingRateOnNewFunds">Lãi suất cho vay BQ trên số tiền cho vay mới (%/năm)
+                                <span class="info-tooltip">ⓘ<span class="tooltiptext">Lãi suất cho vay bình quân hàng năm mà ngân hàng kỳ vọng đạt được từ việc cho vay nguồn vốn mới này. Nhập dạng số, ví dụ: 9.5 cho 9.5%.</span></span>
+                            </label>
+                            <div class="slider-input-container">
+                                <input type="range" id="avgLendingRateOnNewFunds_slider" min="0" max="20" step="0.1">
+                                <input type="text" id="avgLendingRateOnNewFunds" value="9.5" data-format-type="rate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <button onclick="calculateAdvancedCoF()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 ease-in-out mt-6 text-lg">
+                    Tính toán Mô phỏng Nâng cao
+                </button>
+                <div id="errorMessages" class="mt-4"></div>
+            </section>
+
+            <section id="resultSection" class="mt-10 lg:mt-0 lg:col-span-1">
+                <h2 class="section-title">II. Kết quả Mô phỏng</h2>
+                <div id="results" class="space-y-3 bg-gray-50 p-6 rounded-lg shadow-inner min-h-[200px]">
+                    <p class="text-gray-500 italic">Vui lòng nhập các thông số và nhấn "Tính toán Mô phỏng Nâng cao" để xem kết quả.</p>
+                </div>
+                
+                <div class="mt-6">
+                     <button id="getGeminiAnalysisBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        ✨ Phân tích & Đề xuất từ AI
+                    </button>
+                    <div id="geminiLoadingIndicator" class="loading-indicator mt-2">Đang lấy phân tích từ AI...</div>
+                    <div id="geminiAnalysisResultContainer" class="mt-4">
+                        <div id="geminiAnalysisResult"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content help-section">
+            <div class="modal-header">
+                <span class="close-button" onclick="closeHelpModal()">&times;</span>
+                <h3 class="modal-title">Giải thích Chi tiết Mô hình Tính toán</h3>
+            </div>
+            
+            <h4>Tổng quan</h4>
+            <p>Mô hình này giúp ước tính tác động của việc triển khai sản phẩm "Tiền gửi Thông minh" lên Chi phí Vốn (CoF) và lợi nhuận ròng của ngân hàng. Mô hình xem xét nhiều yếu tố như phân khúc khách hàng, danh mục sản phẩm CD, tác động "ăn mòn" CASA, chi phí hoạt động, hành vi khách hàng, và khả năng mở rộng quy mô huy động cũng như cho vay từ nguồn vốn mới.</p>
+
+            <h4>Các Bước Tính toán Chính và Công thức</h4>
+
+            <p><strong>1. Tính toán Lượng CASA chuyển đổi từ Sản phẩm Tiền gửi Thông minh (Auto-Earn):</strong></p>
+            <ul>
+                <li>Với mỗi Phân khúc Khách hàng (PKKH):
+                    <p class="formula"><code>Số dư CASA vượt ngưỡng/KH (PKKH) = MAX(0, Số dư CASA bình quân/KH (PKKH) - Ngưỡng CASA chung)</code></p>
+                    <p class="formula"><code>Tiềm năng CD được tạo/KH (PKKH) = Số dư CASA vượt ngưỡng/KH (PKKH) * Tỷ lệ phần CASA vượt ngưỡng chuyển sang CD (PKKH)</code></p>
+                    <p class="formula"><code>Lượng CASA chuyển sang CD (PKKH) = Tiềm năng CD được tạo/KH (PKKH) * Số lượng KH (PKKH) * Tỷ lệ sử dụng SP (PKKH)</code></p>
+                </li>
+                <li><p class="formula"><code>Tổng CASA từ SP mới chuyển sang CD (V_converted_product) = SUM(Lượng CASA chuyển sang CD (PKKH))</code></p></li>
+                <li><p class="formula"><code>Tổng Lãi phải trả nếu lượng tiền này vẫn ở CASA (InterestIfCASA_product) = V_converted_product * Lãi suất CASA</code></p></li>
+            </ul>
+
+            <p><strong>2. Tính Lãi suất CD Bình quân Gia quyền cho Sản phẩm Mới:</strong></p>
+            <ul>
+                <li><p class="formula"><code>Lãi suất CD Bình quân Gia quyền SP mới (WeightedAvgNewCDRate) = SUM(Lãi suất CD (loại i) * Tỷ lệ phân bổ vào CD (loại i))</code></p></li>
+            </ul>
+            
+            <p><strong>3. Tính Chi phí Lãi cho Lượng CD mới từ Sản phẩm (có xét Rút trước hạn):</strong></p>
+            <ul>
+                <li><p class="formula"><code>Lượng CD bị rút trước hạn (AmountEarlyWithdrawn_product) = V_converted_product * Tỷ lệ CD rút trước hạn</code></p></li>
+                <li><p class="formula"><code>Tiết kiệm lãi từ CD rút sớm = AmountEarlyWithdrawn_product * (WeightedAvgNewCDRate - Lãi suất CASA)</code></p></li>
+                <li><p class="formula"><code>Chi phí lãi thực tế cho CD từ SP (InterestFromNewCDs_product_actual) = (V_converted_product * WeightedAvgNewCDRate) - Tiết kiệm lãi từ CD rút sớm</code></p></li>
+            </ul>
+
+            <p><strong>4. Thay đổi Chi phí Lãi (chỉ từ Sản phẩm Tiền gửi Thông minh):</strong></p>
+            <p class="formula"><code>ΔInterest_Product = InterestFromNewCDs_product_actual - InterestIfCASA_product</code></p>
+
+            <p><strong>5. Tính toán Tác động "Ăn mòn" CASA:</strong></p>
+            <ul>
+                <li><p class="formula"><code>Tổng CASA bị "ăn mòn" sang CD (V_cannibalized) = Số dư CASA bình quân TK bị "ăn mòn" * Số lượng TK CASA bị "ăn mòn"</code></p></li>
+                <li><p class="formula"><code>ΔInterest_Cannibalization = V_cannibalized * (WeightedAvgNewCDRate - Lãi suất CASA)</code></p></li>
+            </ul>
+
+            <p><strong>6. Tổng Thay đổi Chi phí Lãi (Trước khi xét vốn mới):</strong></p>
+            <p class="formula"><code>Total_ΔInterest_Expense_Before_New_Funding = ΔInterest_Product + ΔInterest_Cannibalization</code></p>
+            
+            <p><strong>7. Tác động từ Huy động Vốn Tăng thêm và Cho vay:</strong></p>
+            <ul>
+                <li><p class="formula"><code>Chi phí lãi cho Vốn Huy động Tăng thêm (InterestCost_AdditionalFunding) = Quy mô huy động vốn tăng thêm * WeightedAvgNewCDRate</code></p> 
+                    (Giả định vốn mới này có chi phí tương tự như CD tạo từ SP)
+                </li>
+                <li><p class="formula"><code>Tổng Thay đổi Chi phí Lãi Cuối cùng (Total_ΔInterest_Expense_Final) = Total_ΔInterest_Expense_Before_New_Funding + InterestCost_AdditionalFunding</code></p></li>
+                <li><p class="formula"><code>Thu nhập Lãi Bổ sung từ Cho vay (Additional_Interest_Income) = Số tiền cho vay từ nguồn vốn mới * Lãi suất cho vay BQ trên số tiền cho vay mới</code></p></li>
+            </ul>
+
+            <p><strong>8. Tổng Chi phí Hoạt động:</strong></p>
+            <p class="formula"><code>Total_Operational_Cost = Chi phí Marketing + Chi phí Công nghệ + Chi phí Nhân sự</code></p>
+
+            <p><strong>9. Tính toán Chi phí Vốn (CoF) Mới (Đã điều chỉnh theo vốn mới):</strong></p>
+            <ul>
+                <li><p class="formula"><code>CoF CŨ (%) = (Tổng chi phí lãi hiện tại / Tổng nguồn vốn huy động hiện tại) * 100</code></p></li>
+                <li><p class="formula"><code>Tổng chi phí lãi MỚI (bao gồm cả vốn mới) = Tổng chi phí lãi hiện tại + Total_ΔInterest_Expense_Final</code></p></li>
+                <li><p class="formula"><code>Tổng nguồn vốn MỚI Thực tế = Tổng nguồn vốn huy động hiện tại + Quy mô huy động vốn tăng thêm</code></p></li>
+                <li><p class="formula"><code>CoF MỚI Thực tế (%) = (Tổng chi phí lãi MỚI (bao gồm cả vốn mới) / Tổng nguồn vốn MỚI Thực tế) * 100</code></p></li>
+                <li><p class="formula"><code>Mức tăng CoF Thực tế (điểm %) = CoF MỚI Thực tế - CoF CŨ</code></p></li>
+            </ul>
+
+            <p><strong>10. Tác động Lợi nhuận Ròng Ước tính (Đã điều chỉnh):</strong></p>
+            <p class="formula"><code>Tác động Lợi nhuận Ròng Điều chỉnh = Additional_Interest_Income - Total_ΔInterest_Expense_Final - Total_Operational_Cost</code></p>
+            <p>(Giá trị âm nghĩa là lợi nhuận giảm, giá trị dương nghĩa là lợi nhuận tăng).</p>
+            <p><em>Lưu ý: Đây là ví dụ đơn giản hóa. Mô hình thực tế trên giao diện sẽ tính toán chi tiết hơn dựa trên tất cả các phân khúc và sản phẩm CD bạn nhập.</em></p>
+        </div>
+    </div>
+
+    <script>
+        const DECIMAL_CONFIG = {
+            'vnd': 0, 'rate': 2, 'percent': 2, 'count': 0
+        };
+        const THOUSANDS_SEP = '.';
+        const DECIMAL_POINT = ',';
+        let currentSimulationResults = {}; 
+
+        window.onload = function() {
+            addCustomerSegment(true); 
+            addCdProduct(true); 
+            initializeAllSlidersAndInputs();
+            setupHelpModal();
+            document.getElementById('getGeminiAnalysisBtn').addEventListener('click', getGeminiAnalysis);
+        };
+        
+        function initializeAllSlidersAndInputs() {
+            document.querySelectorAll('#inputSection input[type="text"][data-format-type]').forEach(textInput => {
+                const sliderId = textInput.id + '_slider';
+                const slider = document.getElementById(sliderId);
+                formatSingleInput(textInput); 
+                if (slider) {
+                    const numericValue = parseFormattedNumber(textInput.value);
+                    if (!isNaN(numericValue)) slider.value = numericValue; // Set slider based on initial text
+                    slider.addEventListener('input', handleSliderInput);
+                }
+                textInput.addEventListener('blur', handleTextInputBlur);
+            });
+        }
+
+        function setupHelpModal() {
+            const modal = document.getElementById("helpModal");
+            const btn = document.getElementById("openHelpModalBtn");
+            const span = modal.querySelector(".close-button");
+            btn.onclick = function() { modal.style.display = "block"; }
+            span.onclick = function() { modal.style.display = "none"; }
+            window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; }
+        }
+        function closeHelpModal() { document.getElementById("helpModal").style.display = "none"; }
+
+        function customFormatNumber(num, decimals = 2, dec_point = ',', thousands_sep = '.') {
+            if (isNaN(num) || !isFinite(num)) return ''; 
+            let number = parseFloat(num);
+            let negative = number < 0;
+            number = Math.abs(number);
+            let i = parseInt(number.toFixed(decimals), 10) + ""; 
+            let j = (i.length > 3) ? i.length % 3 : 0;
+            return (negative ? "-" : "") + (j ? i.substr(0, j) + thousands_sep : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands_sep) + (decimals > 0 ? dec_point + Math.abs(number - parseInt(i)).toFixed(decimals).slice(2) : "");
+        }
+        
+        function formatNumber(num, decimals = 2, unit = '') {
+            if (isNaN(num) || !isFinite(num)) return 'N/A';
+            const formatted = customFormatNumber(num, decimals, DECIMAL_POINT, THOUSANDS_SEP);
+            return unit ? `${formatted} ${unit}` : formatted;
+        }
+
+        function parseFormattedNumber(formattedString) {
+            if (typeof formattedString !== 'string' || formattedString.trim() === '') return NaN;
+            return parseFloat(formattedString.replace(new RegExp('\\' + THOUSANDS_SEP, 'g'), '').replace(DECIMAL_POINT, '.'));
+        }
+
+        function getInputValue(id) { return parseFormattedNumber(document.getElementById(id).value); }
+        
+        function formatSingleInput(inputElement) {
+            const rawValue = inputElement.value;
+            const numValue = parseFormattedNumber(rawValue);
+            if (!isNaN(numValue)) {
+                const formatType = inputElement.dataset.formatType || 'vnd';
+                const decimals = DECIMAL_CONFIG[formatType] !== undefined ? DECIMAL_CONFIG[formatType] : 0;
+                inputElement.value = customFormatNumber(numValue, decimals, DECIMAL_POINT, THOUSANDS_SEP);
+            } else if (rawValue.trim() === "") inputElement.value = ""; 
+        }
+
+        function handleSliderInput(event) {
+            const slider = event.target;
+            const textInput = document.getElementById(slider.id.replace('_slider', ''));
+            if (textInput) {
+                const formatType = textInput.dataset.formatType || 'vnd';
+                const decimals = DECIMAL_CONFIG[formatType] !== undefined ? DECIMAL_CONFIG[formatType] : 0;
+                textInput.value = customFormatNumber(parseFloat(slider.value), decimals, DECIMAL_POINT, THOUSANDS_SEP);
+            }
+        }
+
+        function handleTextInputBlur(event) {
+            const textInput = event.target;
+            formatSingleInput(textInput); 
+            const slider = document.getElementById(textInput.id + '_slider');
+            if (slider) {
+                const numericValue = parseFormattedNumber(textInput.value);
+                if (!isNaN(numericValue)) {
+                    let sliderVal = numericValue;
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    if (sliderVal < min) sliderVal = min;
+                    if (sliderVal > max) sliderVal = max;
+                    slider.value = sliderVal;
+                    if (sliderVal !== numericValue) {
+                         const formatType = textInput.dataset.formatType || 'vnd';
+                         const decimals = DECIMAL_CONFIG[formatType] !== undefined ? DECIMAL_CONFIG[formatType] : 0;
+                         textInput.value = customFormatNumber(sliderVal, decimals, DECIMAL_POINT, THOUSANDS_SEP);
+                    }
+                }
+            }
+        }
+        
+        let segmentIdCounter = 0;
+        function addCustomerSegment(isDefault = false) {
+            segmentIdCounter++;
+            const segmentDiv = document.createElement('div');
+            segmentDiv.className = 'segment-card';
+            segmentDiv.id = `segment-${segmentIdCounter}`;
+            const nCustDef = isDefault ? '50000' : '10000', casaAvgDef = isDefault ? '30000000' : '20000000';
+            const adoptDef = isDefault ? '60' : '50', portionDef = isDefault ? '100' : '80';
+            segmentDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-3"><h4 class="font-semibold text-gray-700">Phân khúc ${segmentIdCounter}</h4>${!isDefault ? `<button onclick="removeElement('segment-${segmentIdCounter}')" class="remove-btn text-xs py-1 px-2 rounded-md">Xóa</button>` : ''}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                    <div class="input-group"><label for="segmentName-${segmentIdCounter}">Tên Phân khúc</label><input type="text" id="segmentName-${segmentIdCounter}" value="Phân khúc ${segmentIdCounter}"></div>
+                    <div class="input-group"><label for="nCustomers-${segmentIdCounter}">Số lượng KH</label><div class="slider-input-container"><input type="range" id="nCustomers-${segmentIdCounter}_slider" min="0" max="200000" step="1000"><input type="text" id="nCustomers-${segmentIdCounter}" value="${nCustDef}" data-format-type="count"></div></div>
+                    <div class="input-group"><label for="casaEligibleAvg-${segmentIdCounter}">Số dư CASA bình quân/KH (VND)</label><div class="slider-input-container"><input type="range" id="casaEligibleAvg-${segmentIdCounter}_slider" min="0" max="200000000" step="1000000"><input type="text" id="casaEligibleAvg-${segmentIdCounter}" value="${casaAvgDef}" data-format-type="vnd"></div></div>
+                    <div class="input-group"><label for="adoptionRate-${segmentIdCounter}">Tỷ lệ sử dụng SP (%)</label><div class="slider-input-container"><input type="range" id="adoptionRate-${segmentIdCounter}_slider" min="0" max="100" step="1"><input type="text" id="adoptionRate-${segmentIdCounter}" value="${adoptDef}" data-format-type="percent"></div></div>
+                    <div class="input-group md:col-span-2"><label for="portionExcessToCD-${segmentIdCounter}">Tỷ lệ phần CASA vượt ngưỡng sang CD (%)</label><div class="slider-input-container"><input type="range" id="portionExcessToCD-${segmentIdCounter}_slider" min="0" max="100" step="1"><input type="text" id="portionExcessToCD-${segmentIdCounter}" value="${portionDef}" data-format-type="percent"></div></div>
+                </div>`;
+            document.getElementById('customerSegmentsContainer').appendChild(segmentDiv);
+            segmentDiv.querySelectorAll('input[type="text"][data-format-type]').forEach(inp => {
+                const slider = document.getElementById(inp.id + '_slider');
+                formatSingleInput(inp);
+                if (slider) {
+                    const numVal = parseFormattedNumber(inp.value);
+                    if (!isNaN(numVal)) slider.value = numVal;
+                    slider.addEventListener('input', handleSliderInput);
+                }
+                inp.addEventListener('blur', handleTextInputBlur);
+            });
+        }
+
+        let cdProductIdCounter = 0;
+        function addCdProduct(isDefault = false) {
+            cdProductIdCounter++;
+            const cdDiv = document.createElement('div');
+            cdDiv.className = 'cd-product-card';
+            cdDiv.id = `cdProduct-${cdProductIdCounter}`;
+            const rateDef = isDefault ? '5.0' : '5.5', distDef = isDefault ? '100' : '0';
+            cdDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-3"><h4 class="font-semibold text-gray-700">Sản phẩm CD ${cdProductIdCounter}</h4>${!isDefault ? `<button onclick="removeElement('cdProduct-${cdProductIdCounter}')" class="remove-btn text-xs py-1 px-2 rounded-md">Xóa</button>` : ''}</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-3">
+                    <div class="input-group"><label for="cdTenorName-${cdProductIdCounter}">Tên/Kỳ hạn CD</label><input type="text" id="cdTenorName-${cdProductIdCounter}" value="${isDefault ? 'CD 3 tháng' : 'CD 6 tháng'}"></div>
+                    <div class="input-group"><label for="cdRate-${cdProductIdCounter}">Lãi suất CD (%/năm)</label><div class="slider-input-container"><input type="range" id="cdRate-${cdProductIdCounter}_slider" min="0" max="15" step="0.01"><input type="text" id="cdRate-${cdProductIdCounter}" value="${rateDef}" data-format-type="rate"></div></div>
+                    <div class="input-group"><label for="cdDistribution-${cdProductIdCounter}">Tỷ lệ phân bổ (%)</label><div class="slider-input-container"><input type="range" id="cdDistribution-${cdProductIdCounter}_slider" min="0" max="100" step="1"><input type="text" id="cdDistribution-${cdProductIdCounter}" value="${distDef}" data-format-type="percent"></div></div>
+                </div>`;
+            document.getElementById('cdProductsContainer').appendChild(cdDiv);
+            cdDiv.querySelectorAll('input[type="text"][data-format-type]').forEach(inp => {
+                const slider = document.getElementById(inp.id + '_slider');
+                formatSingleInput(inp);
+                if (slider) {
+                    const numVal = parseFormattedNumber(inp.value);
+                    if (!isNaN(numVal)) slider.value = numVal;
+                    slider.addEventListener('input', handleSliderInput);
+                }
+                inp.addEventListener('blur', handleTextInputBlur);
+            });
+        }
+
+        function removeElement(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) element.parentNode.removeChild(element);
+        }
+
+        async function getGeminiAnalysis() {
+            const geminiBtn = document.getElementById('getGeminiAnalysisBtn');
+            const loadingIndicator = document.getElementById('geminiLoadingIndicator');
+            const resultContainer = document.getElementById('geminiAnalysisResult');
+
+            geminiBtn.disabled = true;
+            loadingIndicator.style.display = 'block';
+            resultContainer.innerHTML = '';
+
+            let promptData = "Dựa trên các thông số mô phỏng sản phẩm tiền gửi thông minh sau đây:\n";
+            promptData += `- Tổng nguồn vốn cũ: ${document.getElementById('totalFundingOld').value} VND\n`;
+            promptData += `- Tổng chi phí lãi cũ: ${document.getElementById('totalInterestExpenseOld').value} VND/năm\n`;
+            promptData += `- Ngưỡng CASA: ${document.getElementById('thresholdCASA').value} VND\n`;
+            promptData += `- Lãi suất CASA: ${document.getElementById('rateCASA').value}%/năm\n`;
+
+            promptData += "\nPhân khúc khách hàng:\n";
+            document.querySelectorAll('#customerSegmentsContainer .segment-card').forEach((seg, i) => {
+                const id = seg.id.split('-')[1];
+                promptData += `  Phân khúc ${i+1} (${document.getElementById(`segmentName-${id}`).value}):\n`;
+                promptData += `    Số lượng KH: ${document.getElementById(`nCustomers-${id}`).value}\n`;
+                promptData += `    Số dư CASA BQ/KH: ${document.getElementById(`casaEligibleAvg-${id}`).value} VND\n`;
+                promptData += `    Tỷ lệ sử dụng SP: ${document.getElementById(`adoptionRate-${id}`).value}%\n`;
+                promptData += `    Tỷ lệ phần vượt ngưỡng sang CD: ${document.getElementById(`portionExcessToCD-${id}`).value}%\n`;
+            });
+
+            promptData += "\nDanh mục sản phẩm CD mới:\n";
+            document.querySelectorAll('#cdProductsContainer .cd-product-card').forEach((prod, i) => {
+                const id = prod.id.split('-')[1];
+                promptData += `  Sản phẩm CD ${i+1} (${document.getElementById(`cdTenorName-${id}`).value}):\n`;
+                promptData += `    Lãi suất: ${document.getElementById(`cdRate-${id}`).value}%/năm\n`;
+                promptData += `    Tỷ lệ phân bổ: ${document.getElementById(`cdDistribution-${id}`).value}%\n`;
+            });
+            
+            promptData += `\nTác động "ăn mòn" CASA:\n`;
+            promptData += `  Số dư CASA BQ TK "ăn mòn": ${document.getElementById('avgCasaBalanceForCannibalization').value} VND\n`;
+            promptData += `  Số lượng TK CASA "ăn mòn": ${document.getElementById('numAccountsCannibalized').value}\n`;
+
+            promptData += `\nChi phí hoạt động (ước tính hàng năm):\n`;
+            promptData += `  Marketing: ${document.getElementById('marketingCost').value} VND\n`;
+            promptData += `  Công nghệ: ${document.getElementById('itCost').value} VND\n`;
+            promptData += `  Nhân sự: ${document.getElementById('hrCost').value} VND\n`;
+            
+            promptData += `\nGiả định hành vi khách hàng:\n`;
+            promptData += `  Tỷ lệ duy trì CD sau đáo hạn: ${document.getElementById('cdRetentionRate').value}%\n`;
+            promptData += `  Tỷ lệ CD rút trước hạn: ${document.getElementById('earlyWithdrawalRate').value}%\n`;
+
+            promptData += `\nTác động Mở rộng Quy mô & Cho vay:\n`;
+            promptData += `  Quy mô huy động vốn tăng thêm: ${document.getElementById('additionalFundingMobilized').value} VND\n`;
+            promptData += `  Số tiền cho vay từ nguồn vốn mới: ${document.getElementById('amountLentFromNewFunds').value} VND\n`;
+            promptData += `  Lãi suất cho vay BQ trên số tiền cho vay mới: ${document.getElementById('avgLendingRateOnNewFunds').value}%/năm\n`;
+
+
+            promptData += "\nKết quả mô phỏng hiện tại:\n";
+            for (const key in currentSimulationResults) {
+                promptData += `  - ${key}: ${currentSimulationResults[key]}\n`;
+            }
+
+            promptData += `\nHãy đưa ra bằng tiếng Việt:
+1. Một nhận xét ngắn gọn (2-3 câu) về kết quả mô phỏng hiện tại, đặc biệt là về mức tăng CoF và tác động lợi nhuận.
+2. Đề xuất 1-2 kịch bản thay đổi tham số đầu vào (ví dụ: thay đổi tỷ lệ sử dụng sản phẩm, lãi suất CD mới, hoặc quy mô huy động vốn tăng thêm) và dự đoán sơ bộ tác động của những thay đổi đó lên CoF hoặc lợi nhuận.
+3. Đưa ra 1-2 gợi ý chiến lược mà ngân hàng có thể cân nhắc để tối ưu hóa sản phẩm này hoặc giảm thiểu rủi ro.
+Phản hồi cần rõ ràng, dễ hiểu và tập trung vào các khía cạnh tài chính.`;
+
+            try {
+                let chatHistory = [{ role: "user", parts: [{ text: promptData }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const analysisText = result.candidates[0].content.parts[0].text;
+                    resultContainer.innerHTML = analysisText.replace(/\n/g, '<br>');
+                } else {
+                    resultContainer.textContent = "Không nhận được phản hồi hợp lệ từ AI.";
+                }
+            } catch (error) {
+                resultContainer.textContent = "Đã xảy ra lỗi khi lấy phân tích từ AI. Chi tiết: " + error.message;
+            } finally {
+                loadingIndicator.style.display = 'none';
+                geminiBtn.disabled = false;
+            }
+        }
+
+        function calculateAdvancedCoF() {
+            document.getElementById('errorMessages').innerHTML = '';
+            let errors = [];
+            currentSimulationResults = {};
+
+            const totalFundingOld = getInputValue('totalFundingOld');
+            const totalInterestExpenseOld = getInputValue('totalInterestExpenseOld');
+            const thresholdCASA = getInputValue('thresholdCASA');
+            const rateCASA = getInputValue('rateCASA') / 100;
+
+            // --- New Inputs for Scale Expansion ---
+            const additionalFundingMobilized = getInputValue('additionalFundingMobilized');
+            const amountLentFromNewFunds = getInputValue('amountLentFromNewFunds');
+            const avgLendingRateOnNewFunds = getInputValue('avgLendingRateOnNewFunds') / 100;
+
+            if (isNaN(additionalFundingMobilized) || additionalFundingMobilized < 0) errors.push("Quy mô huy động vốn tăng thêm không hợp lệ.");
+            if (isNaN(amountLentFromNewFunds) || amountLentFromNewFunds < 0) errors.push("Số tiền cho vay từ nguồn vốn mới không hợp lệ.");
+            if (isNaN(avgLendingRateOnNewFunds) || avgLendingRateOnNewFunds < 0) errors.push("Lãi suất cho vay BQ trên số tiền cho vay mới không hợp lệ.");
+            
+            // Validate if amountLentFromNewFunds exceeds total new funds (converted + cannibalized + additional)
+            // This check will be done after calculating totalVConvertedToCDFromSegments and vCannibalizedCASA
+
+            // ... (rest of existing validations for other fields)
+            if (isNaN(totalFundingOld) || totalFundingOld <= 0) errors.push("Tổng nguồn vốn huy động hiện tại không hợp lệ.");
+            if (isNaN(totalInterestExpenseOld) || totalInterestExpenseOld < 0) errors.push("Tổng chi phí lãi hiện tại không hợp lệ.");
+            if (isNaN(thresholdCASA) || thresholdCASA < 0) errors.push("Ngưỡng CASA không hợp lệ.");
+            if (isNaN(rateCASA) || rateCASA < 0) errors.push("Lãi suất CASA không hợp lệ.");
+
+
+            let totalVConvertedToCDFromSegments = 0;
+            let totalInterestIfCASAFromSegments = 0;
+            const segments = document.querySelectorAll('#customerSegmentsContainer .segment-card');
+            if (segments.length === 0) errors.push("Vui lòng thêm ít nhất một phân khúc khách hàng.");
+            segments.forEach((segment, index) => {
+                const segmentId = segment.id.split('-')[1];
+                const nCustomers = getInputValue(`nCustomers-${segmentId}`);
+                const casaEligibleAvg = getInputValue(`casaEligibleAvg-${segmentId}`);
+                const adoptionRate = getInputValue(`adoptionRate-${segmentId}`) / 100;
+                const portionExcessToCD = getInputValue(`portionExcessToCD-${segmentId}`) / 100;
+
+                if (isNaN(nCustomers) || nCustomers < 0) errors.push(`Phân khúc ${segmentId}: Số lượng KH không hợp lệ.`);
+                if (isNaN(casaEligibleAvg) || casaEligibleAvg < 0) errors.push(`Phân khúc ${segmentId}: Số dư CASA bình quân không hợp lệ.`);
+                if (isNaN(adoptionRate) || adoptionRate < 0 || adoptionRate > 1) errors.push(`Phân khúc ${segmentId}: Tỷ lệ sử dụng SP không hợp lệ.`);
+                if (isNaN(portionExcessToCD) || portionExcessToCD < 0 || portionExcessToCD > 1) errors.push(`Phân khúc ${segmentId}: Tỷ lệ chuyển sang CD không hợp lệ.`);
+
+                const excessCASAPerCustomer = Math.max(0, casaEligibleAvg - thresholdCASA);
+                const potentialCDPerCustomer = excessCASAPerCustomer * portionExcessToCD;
+                const vConvertedToCDThisSegment = potentialCDPerCustomer * nCustomers * adoptionRate;
+                
+                totalVConvertedToCDFromSegments += vConvertedToCDThisSegment;
+                totalInterestIfCASAFromSegments += vConvertedToCDThisSegment * rateCASA;
+            });
+
+            let totalCdDistribution = 0;
+            let weightedAvgNewCDRate = 0;
+            const cdProducts = document.querySelectorAll('#cdProductsContainer .cd-product-card');
+            if (cdProducts.length === 0 && totalVConvertedToCDFromSegments > 0) {
+                 errors.push("Vui lòng thêm ít nhất một sản phẩm CD nếu có CASA được chuyển đổi.");
+            }
+             cdProducts.forEach((product, index) => {
+                const productId = product.id.split('-')[1];
+                const cdRate = getInputValue(`cdRate-${productId}`) / 100;
+                const cdDistribution = getInputValue(`cdDistribution-${productId}`) / 100;
+
+                if (isNaN(cdRate) || cdRate < 0) errors.push(`Sản phẩm CD ${productId}: Lãi suất CD không hợp lệ.`);
+                if (isNaN(cdDistribution) || cdDistribution < 0 || cdDistribution > 1) errors.push(`Sản phẩm CD ${productId}: Tỷ lệ phân bổ không hợp lệ.`);
+                
+                totalCdDistribution += cdDistribution;
+                weightedAvgNewCDRate += cdRate * cdDistribution;
+            });
+
+            if (cdProducts.length > 0 && Math.abs(totalCdDistribution - 1.0) > 0.001 ) { 
+                errors.push(`Tổng tỷ lệ phân bổ các sản phẩm CD phải là 100% (hiện tại: ${formatNumber(totalCdDistribution * 100, 2)}%).`);
+            }
+             if (cdProducts.length === 0 && totalVConvertedToCDFromSegments > 0) {
+                weightedAvgNewCDRate = 0; 
+            } else if (cdProducts.length > 0 && totalCdDistribution === 0 && totalVConvertedToCDFromSegments > 0) {
+                 errors.push("Cần có ít nhất một sản phẩm CD có tỷ lệ phân bổ > 0 nếu có CASA chuyển đổi.");
+            }
+
+            let interestFromNewCDsProduct = totalVConvertedToCDFromSegments * weightedAvgNewCDRate;
+            const earlyWithdrawalRate = getInputValue('earlyWithdrawalRate') / 100;
+            if (isNaN(earlyWithdrawalRate) || earlyWithdrawalRate < 0 || earlyWithdrawalRate > 1) errors.push("Tỷ lệ CD rút trước hạn không hợp lệ.");
+            const amountEarlyWithdrawn = totalVConvertedToCDFromSegments * earlyWithdrawalRate;
+            const interestIfHeldForEarlyWithdrawn = amountEarlyWithdrawn * weightedAvgNewCDRate;
+            const interestPaidForEarlyWithdrawn = amountEarlyWithdrawn * rateCASA;
+            const interestImpactFromEarlyWithdrawal = interestPaidForEarlyWithdrawn - interestIfHeldForEarlyWithdrawn; 
+            interestFromNewCDsProduct += interestImpactFromEarlyWithdrawal;
+
+            const avgCasaBalanceForCannibalization = getInputValue('avgCasaBalanceForCannibalization');
+            const numAccountsCannibalized = getInputValue('numAccountsCannibalized');
+            if (isNaN(avgCasaBalanceForCannibalization) || avgCasaBalanceForCannibalization < 0) errors.push("Số dư CASA bình quân cho 'ăn mòn' không hợp lệ.");
+            if (isNaN(numAccountsCannibalized) || numAccountsCannibalized < 0) errors.push("Số lượng tài khoản CASA bị 'ăn mòn' không hợp lệ.");
+            const vCannibalizedCASA = avgCasaBalanceForCannibalization * numAccountsCannibalized;
+            const interestIfCASACannibalized = vCannibalizedCASA * rateCASA;
+            const interestIfCDCannibalized = vCannibalizedCASA * weightedAvgNewCDRate; 
+            const deltaInterestCannibalization = interestIfCDCannibalized - interestIfCASACannibalized;
+
+            const marketingCost = getInputValue('marketingCost');
+            const itCost = getInputValue('itCost');
+            const hrCost = getInputValue('hrCost');
+            if (isNaN(marketingCost) || marketingCost < 0) errors.push("Chi phí Marketing không hợp lệ.");
+            if (isNaN(itCost) || itCost < 0) errors.push("Chi phí Công nghệ không hợp lệ.");
+            if (isNaN(hrCost) || hrCost < 0) errors.push("Chi phí Nhân sự không hợp lệ.");
+            const totalOperationalCost = marketingCost + itCost + hrCost;
+
+            // Validate amountLentFromNewFunds against total new funds
+            const totalNewFundsAvailable = totalVConvertedToCDFromSegments + vCannibalizedCASA + additionalFundingMobilized;
+            if (amountLentFromNewFunds > totalNewFundsAvailable) {
+                errors.push("Số tiền cho vay từ nguồn vốn mới không thể lớn hơn tổng vốn mới huy động được (CASA chuyển đổi + CASA ăn mòn + Vốn huy động thêm).");
+            }
+
+
+            if (errors.length > 0) {
+                document.getElementById('errorMessages').innerHTML = errors.map(e => `<p class="error-message">${e}</p>`).join('');
+                document.getElementById('results').innerHTML = '<p class="text-red-500 italic">Vui lòng sửa các lỗi đầu vào.</p>';
+                document.getElementById('getGeminiAnalysisBtn').disabled = true;
+                return;
+            }
+
+            const deltaInterestProduct = interestFromNewCDsProduct - totalInterestIfCASAFromSegments;
+            const interestCostAdditionalFunding = additionalFundingMobilized * weightedAvgNewCDRate; // Assume new funding costs the same as new CDs
+            const totalDeltaInterestExpenseFinal = deltaInterestProduct + deltaInterestCannibalization + interestCostAdditionalFunding;
+            
+            const additionalInterestIncome = amountLentFromNewFunds * avgLendingRateOnNewFunds;
+
+            const coFOld = (totalInterestExpenseOld / totalFundingOld) * 100;
+            const totalInterestExpenseNewWithAdditional = totalInterestExpenseOld + totalDeltaInterestExpenseFinal;
+            const totalFundingNewActual = totalFundingOld + additionalFundingMobilized;
+            
+            const coFNewActual = (totalFundingNewActual > 0) ? (totalInterestExpenseNewWithAdditional / totalFundingNewActual) * 100 : 0;
+            const increaseInCoFRatePercentActual = coFNewActual - coFOld;
+            const increaseInCoFBasisPointsActual = increaseInCoFRatePercentActual * 100;
+            
+            const netProfitImpactAdjusted = additionalInterestIncome - totalDeltaInterestExpenseFinal - totalOperationalCost;
+
+            currentSimulationResults = {
+                "Tổng CASA từ SP mới chuyển sang CD": formatNumber(totalVConvertedToCDFromSegments, 0, 'VND'),
+                "Lãi suất CD BQGQ của SP mới": formatNumber(weightedAvgNewCDRate * 100, 2, '%/năm'),
+                "Tiết kiệm lãi từ CD rút sớm (SP mới)": formatNumber(-interestImpactFromEarlyWithdrawal, 0, 'VND/năm'),
+                "Thay đổi CP Lãi (từ SP mới, sau rút sớm)": formatNumber(deltaInterestProduct, 0, 'VND/năm'),
+                "Tổng CASA bị \"ăn mòn\" sang CD": formatNumber(vCannibalizedCASA, 0, 'VND'),
+                "Thay đổi CP Lãi (từ \"ăn mòn\" CASA)": formatNumber(deltaInterestCannibalization, 0, 'VND/năm'),
+                "CP Lãi cho Vốn Huy động Tăng thêm": formatNumber(interestCostAdditionalFunding, 0, 'VND/năm'),
+                "TỔNG Thay đổi Chi phí Lãi Cuối cùng": formatNumber(totalDeltaInterestExpenseFinal, 0, 'VND/năm'),
+                "Thu nhập Lãi Bổ sung từ Cho vay": formatNumber(additionalInterestIncome, 0, 'VND/năm'),
+                "Tổng Chi phí Hoạt động SP mới": formatNumber(totalOperationalCost, 0, 'VND/năm'),
+                "Chi phí vốn (CoF) BQ CŨ": formatNumber(coFOld, 4, '%'),
+                "Tổng Nguồn vốn MỚI Thực tế": formatNumber(totalFundingNewActual, 0, 'VND'),
+                "Chi phí vốn (CoF) BQ MỚI Thực tế": formatNumber(coFNewActual, 4, '%'),
+                "Mức tăng CoF Thực tế (điểm %)": formatNumber(increaseInCoFRatePercentActual, 4, 'điểm %'),
+                "Mức tăng CoF Thực tế (điểm cơ bản)": formatNumber(increaseInCoFBasisPointsActual, 2, 'bps'),
+                "Tác động Lợi nhuận Ròng Ước tính (Đã điều chỉnh)": formatNumber(netProfitImpactAdjusted, 0, 'VND/năm')
+            };
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = Object.entries(currentSimulationResults).map(([key, value]) => {
+                let classes = "result-label";
+                if (key.includes("TỔNG Thay đổi Chi phí Lãi") || key.includes("Mức tăng CoF")) classes += " text-red-700 font-bold";
+                if (key.includes("Thay đổi CP Lãi (từ SP mới")) classes += " text-blue-700 font-semibold";
+                if (key.includes("Thay đổi CP Lãi (từ \"ăn mòn\"")) classes += " text-orange-700 font-semibold";
+                if (key.includes("CoF BQ MỚI Thực tế")) classes += " font-bold";
+                if (key.includes("Thu nhập Lãi Bổ sung")) classes += " text-green-600 font-semibold";
+                if (key.includes("Tác động Lợi nhuận Ròng")) classes += netProfitImpactAdjusted >= 0 ? " text-green-600 font-bold" : " text-red-600 font-bold";
+
+                return `<div class="result-item"><span class="${classes}">${key}:</span><span class="result-value float-right ${classes.includes('font-bold') ? 'font-bold' : ''} ${classes.includes('text-red') ? 'text-red-600' : (classes.includes('text-green') ? 'text-green-600' : '')}">${value}</span></div>`;
+            }).join('');
+            
+            document.getElementById('getGeminiAnalysisBtn').disabled = false; 
+            document.getElementById('geminiAnalysisResult').innerHTML = ''; 
+        }
+    </script>
+</body>
+</html>

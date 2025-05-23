@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng Chính sách Tiền tệ Nới lỏng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .slider-label { min-width: 180px; }
+        .indicator-value { font-weight: bold; }
+        .explanation-section h4 { font-size: 1.125rem; margin-top: 0.75rem; margin-bottom: 0.25rem; font-weight: 600; }
+        .explanation-section p, .explanation-section ul { margin-bottom: 0.5rem; }
+        .explanation-section ul { list-style-position: inside; padding-left: 1rem;}
+        .explanation-section li { margin-bottom: 0.25rem;}
+        /* Custom styles for better visual appeal */
+        .control-panel, .indicator-panel, .scenario-panel, .simulation-controls, .explanation-section, .chart-container, .risk-warning-panel {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+        h2, h3 {
+            color: #1e3a8a; /* Dark blue */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #2563eb; /* Blue */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #64748b; /* Slate */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        .btn-warning {
+            background-color: #f59e0b; /* Amber */
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #d1d5db; /* Gray-300 */
+            outline: none;
+            border-radius: 4px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2563eb; /* Blue-600 */
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #2563eb; /* Blue-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+        .risk-alert {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        .risk-alert.high-inflation { background-color: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; } /* Red */
+        .risk-alert.high-unemployment { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; } /* Amber */
+        .risk-alert.low-gdp { background-color: #eff6ff; color: #3b82f6; border: 1px solid #93c5fd; } /* Blue */
+        .risk-alert.high-credit { background-color: #f0fdf4; color: #16a34a; border: 1px solid #86efac; } /* Green */
+        
+        /* Added style for chart container height */
+        .chart-container {
+            position: relative; /* Needed for Chart.js responsiveness */
+            height: 60vh; /* Adjust this value as needed, e.g., 400px, 50vh */
+            max-height: 500px; /* Optional: set a max pixel height */
+        }
+        #indicatorChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+    </style>
+</head>
+<body class="bg-slate-100 p-4 md:p-8">
+    <div class="container mx-auto max-w-6xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-700">Mô phỏng Chính sách Tiền tệ Nới lỏng</h1>
+            <p class="text-slate-600 mt-2">Thử nghiệm các công cụ chính sách và quan sát tác động lên nền kinh tế.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="md:col-span-1 control-panel">
+                <h2 class="text-2xl font-semibold mb-4">🎛️ Công cụ Điều khiển</h2>
+                <div class="space-y-5">
+                    <div>
+                        <label for="policyRate" class="block text-sm font-medium text-slate-700 slider-label">Lãi suất chính sách (%):</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="range" id="policyRate" name="policyRate" min="0.5" max="10" step="0.1" value="5" class="w-full">
+                            <span id="policyRateValue" class="text-sm font-semibold text-blue-600 w-12 text-right">5.0%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="reserveRequirement" class="block text-sm font-medium text-slate-700 slider-label">Tỷ lệ dự trữ bắt buộc (%):</label>
+                         <div class="flex items-center space-x-2">
+                            <input type="range" id="reserveRequirement" name="reserveRequirement" min="1" max="8" step="0.1" value="5" class="w-full">
+                            <span id="reserveRequirementValue" class="text-sm font-semibold text-blue-600 w-12 text-right">5.0%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="omoAmount" class="block text-sm font-medium text-slate-700 slider-label">Nghiệp vụ OMO (mua, tỷ VNĐ):</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="range" id="omoAmount" name="omoAmount" min="50" max="500" step="10" value="100" class="w-full">
+                            <span id="omoAmountValue" class="text-sm font-semibold text-blue-600 w-16 text-right">100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 indicator-panel">
+                <h2 class="text-2xl font-semibold mb-4">📊 Chỉ số Theo dõi</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg shadow">
+                        <p class="text-sm text-blue-700">Tăng trưởng GDP (%):</p>
+                        <p id="gdpGrowth" class="text-2xl indicator-value text-blue-600">3.0</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg shadow">
+                        <p class="text-sm text-red-700">Lạm phát (%):</p>
+                        <p id="inflation" class="text-2xl indicator-value text-red-600">2.0</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg shadow">
+                        <p class="text-sm text-yellow-700">Tỷ lệ thất nghiệp (%):</p>
+                        <p id="unemployment" class="text-2xl indicator-value text-yellow-600">5.0</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg shadow">
+                        <p class="text-sm text-green-700">Tăng trưởng tín dụng (%):</p>
+                        <p id="creditGrowth" class="text-2xl indicator-value text-green-600">10.0</p>
+                    </div>
+                </div>
+                <div id="riskWarningPanel" class="mt-4 risk-warning-panel p-0 bg-transparent shadow-none">
+                    <h3 class="text-lg font-semibold mb-2 text-slate-700">⚠️ Cảnh báo Rủi ro</h3>
+                    <div id="riskWarnings" class="space-y-2">
+                        <p class="text-sm text-slate-500">Hiện chưa có cảnh báo nào.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenario-panel">
+            <h2 class="text-2xl font-semibold mb-4">🎯 Các Kịch bản Mẫu</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <button id="crisisScenario" class="btn btn-warning">🚨 Khủng hoảng</button>
+                <button id="moderateEasingScenario" class="btn btn-primary">⚠️ Nới lỏng vừa phải</button>
+                <button id="neutralScenario" class="btn btn-secondary">📊 Bình thường</button>
+                <button id="tighteningScenario" class="btn btn-primary" style="background-color: #7c3aed;">🔒 Thắt chặt</button> </div>
+        </div>
+
+        <div class="simulation-controls text-center">
+            <button id="runSimulation" class="btn btn-primary mr-2">🚀 Chạy Mô phỏng (24 tháng)</button>
+            <button id="resetSimulation" class="btn btn-secondary">🔄 Đặt lại</button>
+        </div>
+
+        <div class="chart-container">
+            <h2 class="text-2xl font-semibold mb-4 text-center">📈 Biểu đồ Xu hướng Theo Thời gian</h2>
+            <canvas id="indicatorChart"></canvas>
+        </div>
+        
+        <div class="explanation-section">
+            <h2 class="text-2xl font-semibold mb-4">💡 Giải thích Cơ chế và Lưu ý</h2>
+            <div>
+                <h4>Mục tiêu của Chính sách Tiền tệ Nới lỏng:</h4>
+                <p>Chính sách tiền tệ nới lỏng thường được áp dụng khi nền kinh tế có dấu hiệu suy giảm, tăng trưởng thấp hoặc tỷ lệ thất nghiệp cao. Mục tiêu chính là:</p>
+                <ul>
+                    <li>Kích thích tăng trưởng kinh tế (GDP).</li>
+                    <li>Giảm tỷ lệ thất nghiệp.</li>
+                    <li>Tăng cường đầu tư và tiêu dùng.</li>
+                </ul>
+
+                <h4>Các Công cụ Chính sách:</h4>
+                <ul>
+                    <li><strong>Lãi suất chính sách (Lãi suất điều hành):</strong> Khi NHTW giảm lãi suất này, chi phí vay vốn của các ngân hàng thương mại (NHTM) giảm xuống, từ đó NHTM có thể giảm lãi suất cho vay ra thị trường, khuyến khích doanh nghiệp và người dân vay vốn.</li>
+                    <li><strong>Tỷ lệ dự trữ bắt buộc:</strong> Là tỷ lệ lượng tiền mà các NHTM phải giữ lại tại NHTW, không được dùng để cho vay. Khi NHTW giảm tỷ lệ này, các NHTM có nhiều vốn khả dụng hơn để cho vay, làm tăng cung tiền.</li>
+                    <li><strong>Nghiệp vụ thị trường mở (OMO):</strong> Phổ biến nhất là NHTW mua vào các giấy tờ có giá (như trái phiếu chính phủ) từ các NHTM. Hành động này bơm một lượng tiền vào hệ thống ngân hàng, tăng thanh khoản và có thể làm giảm lãi suất trên thị trường liên ngân hàng.</li>
+                </ul>
+
+                <h4>Cơ chế Truyền dẫn (Minh họa đơn giản):</h4>
+                <p><strong>NHTW thực hiện nới lỏng</strong> (giảm lãi suất, giảm DTBB, mua OMO) ➔ <strong>Tác động lên NHTM</strong> (chi phí vốn giảm, vốn khả dụng tăng, thanh khoản dồi dào) ➔ <strong>NHTM điều chỉnh</strong> (giảm lãi suất cho vay, tăng cường cho vay) ➔ <strong>Tác động đến Nền kinh tế</strong> (doanh nghiệp và hộ gia đình tăng vay để đầu tư, sản xuất, tiêu dùng) ➔ <strong>Kết quả kỳ vọng</strong> (tăng trưởng GDP cao hơn, tỷ lệ thất nghiệp giảm, tín dụng tăng trưởng).</p>
+                <p class="italic text-sm">Sơ đồ: NHTW → Công cụ chính sách → Ngân hàng Thương mại → Chi phí vốn & Khả năng cho vay → Doanh nghiệp & Hộ gia đình → Đầu tư & Tiêu dùng → GDP, Lạm phát, Thất nghiệp.</p>
+
+
+                <h4>Rủi ro và Lưu ý Quan trọng:</h4>
+                <ul>
+                    <li><strong>Rủi ro lạm phát:</strong> Nới lỏng quá mức hoặc kéo dài có thể làm tăng tổng cầu quá nhanh, gây áp lực lên giá cả và dẫn đến lạm phát cao.</li>
+                    <li><strong>Bong bóng tài sản:</strong> Lượng tiền lớn và lãi suất thấp có thể chảy vào các thị trường tài sản (bất động sản, chứng khoán), tạo ra nguy cơ bong bóng.</li>
+                    <li><strong>Độ trễ của chính sách:</strong> Tác động của chính sách tiền tệ thường có độ trễ nhất định mới phản ánh đầy đủ vào nền kinh tế (có thể từ vài tháng đến hơn một năm).</li>
+                    <li><strong>Các yếu tố khác:</strong> Hiệu quả của chính sách còn phụ thuộc vào nhiều yếu tố khác như niềm tin của thị trường, sức khỏe hệ thống tài chính, chính sách tài khóa và các điều kiện kinh tế toàn cầu.</li>
+                </ul>
+                 <p class="mt-4 text-sm text-slate-500"><em>Mô phỏng này sử dụng các mô hình đơn giản hóa để minh họa. Kết quả thực tế có thể phức tạp hơn nhiều.</em></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const policyRateSlider = document.getElementById('policyRate');
+        const policyRateValueDisplay = document.getElementById('policyRateValue');
+        const reserveRequirementSlider = document.getElementById('reserveRequirement');
+        const reserveRequirementValueDisplay = document.getElementById('reserveRequirementValue');
+        const omoAmountSlider = document.getElementById('omoAmount');
+        const omoAmountValueDisplay = document.getElementById('omoAmountValue');
+
+        const gdpGrowthDisplay = document.getElementById('gdpGrowth');
+        const inflationDisplay = document.getElementById('inflation');
+        const unemploymentDisplay = document.getElementById('unemployment');
+        const creditGrowthDisplay = document.getElementById('creditGrowth');
+
+        const riskWarningsContainer = document.getElementById('riskWarnings');
+
+        const crisisScenarioBtn = document.getElementById('crisisScenario');
+        const moderateEasingScenarioBtn = document.getElementById('moderateEasingScenario');
+        const neutralScenarioBtn = document.getElementById('neutralScenario');
+        const tighteningScenarioBtn = document.getElementById('tighteningScenario');
+
+        const runSimulationBtn = document.getElementById('runSimulation');
+        const resetSimulationBtn = document.getElementById('resetSimulation');
+        const chartCanvas = document.getElementById('indicatorChart');
+
+        // Initial State
+        let config = {
+            policyRate: 5.0,
+            reserveRequirement: 5.0,
+            omoAmount: 100, // tỷ VND
+        };
+
+        let indicators = {
+            gdpGrowth: 3.0,
+            inflation: 2.0,
+            unemployment: 5.0,
+            creditGrowth: 10.0,
+        };
+        
+        const BASE_VALUES = { // Baseline economic conditions for reset and reference
+            gdpGrowth: 3.0,
+            inflation: 2.0,
+            unemployment: 5.0,
+            creditGrowth: 10.0,
+            policyRate: 5.0,
+            reserveRequirement: 5.0,
+            omoAmount: 100,
+        };
+
+        let historicalData = {
+            time: [],
+            gdpGrowth: [],
+            inflation: [],
+            unemployment: [],
+            creditGrowth: [],
+        };
+        let simulationTimeStep = 0;
+        let chartInstance;
+        let simulationInterval;
+
+        const SIMULATION_PERIODS = 24; // months
+        const ADJUSTMENT_FACTOR = 0.35; // How quickly indicators react in one step (0 to 1)
+
+        // --- Core Logic Functions ---
+
+        function updateDisplays() {
+            policyRateValueDisplay.textContent = `${parseFloat(config.policyRate).toFixed(1)}%`;
+            policyRateSlider.value = config.policyRate;
+
+            reserveRequirementValueDisplay.textContent = `${parseFloat(config.reserveRequirement).toFixed(1)}%`;
+            reserveRequirementSlider.value = config.reserveRequirement;
+
+            omoAmountValueDisplay.textContent = `${config.omoAmount}`;
+            omoAmountSlider.value = config.omoAmount;
+
+            gdpGrowthDisplay.textContent = parseFloat(indicators.gdpGrowth).toFixed(1);
+            inflationDisplay.textContent = parseFloat(indicators.inflation).toFixed(1);
+            unemploymentDisplay.textContent = parseFloat(indicators.unemployment).toFixed(1);
+            creditGrowthDisplay.textContent = parseFloat(indicators.creditGrowth).toFixed(1);
+            checkRiskWarnings();
+        }
+        
+        // Simplified model for policy impact
+        function calculateTargetIndicators() {
+            // Normalize policy inputs (deviation from a neutral/base setting)
+            // Higher values for rate/RR are tightening, lower are easing. Higher OMO is easing.
+            const rateEffect = (BASE_VALUES.policyRate - config.policyRate) * 0.25; // e.g., 1% rate cut = +0.25 stimulus points
+            const rrEffect = (BASE_VALUES.reserveRequirement - config.reserveRequirement) * 0.4; // e.g., 1% RR cut = +0.4 stimulus points
+            const omoEffect = (config.omoAmount - BASE_VALUES.omoAmount) / 100 * 0.3; // e.g., 100 tỷ OMO increase = +0.3 stimulus points
+            
+            const monetaryStimulus = rateEffect + rrEffect + omoEffect;
+
+            // Target Credit Growth: Stimulus directly boosts credit
+            let targetCreditGrowth = BASE_VALUES.creditGrowth + monetaryStimulus * 3.0;
+            targetCreditGrowth = Math.max(0, Math.min(targetCreditGrowth, 30)); // Cap credit growth
+
+            // Target GDP: Stimulus and credit growth boost GDP, inflation slightly dampens it
+            let targetGDPGrowth = BASE_VALUES.gdpGrowth + monetaryStimulus * 0.8 + (indicators.creditGrowth - BASE_VALUES.creditGrowth) * 0.15 - (indicators.inflation - BASE_VALUES.inflation) * 0.05;
+            targetGDPGrowth = Math.max(-5, Math.min(targetGDPGrowth, 12));
+
+            // Target Inflation: Stimulus, high GDP, and high credit growth can fuel inflation
+            let targetInflation = BASE_VALUES.inflation + monetaryStimulus * 0.6 + (indicators.gdpGrowth - BASE_VALUES.gdpGrowth) * 0.1 + (indicators.creditGrowth - BASE_VALUES.creditGrowth) * 0.08;
+            targetInflation = Math.max(0, Math.min(targetInflation, 15));
+
+            // Target Unemployment: High GDP growth reduces unemployment, high inflation might slightly worsen it if it chokes growth
+            let targetUnemployment = BASE_VALUES.unemployment - (indicators.gdpGrowth - BASE_VALUES.gdpGrowth) * 0.7;
+            targetUnemployment = Math.max(1, Math.min(targetUnemployment, 20));
+            
+            return { targetGDPGrowth, targetInflation, targetUnemployment, targetCreditGrowth };
+        }
+
+        function applyPolicyChange() {
+            const targets = calculateTargetIndicators();
+
+            indicators.creditGrowth += (targets.targetCreditGrowth - indicators.creditGrowth) * ADJUSTMENT_FACTOR;
+            indicators.gdpGrowth += (targets.targetGDPGrowth - indicators.gdpGrowth) * ADJUSTMENT_FACTOR;
+            indicators.inflation += (targets.targetInflation - indicators.inflation) * ADJUSTMENT_FACTOR;
+            indicators.unemployment += (targets.targetUnemployment - indicators.unemployment) * ADJUSTMENT_FACTOR;
+            
+            // Ensure indicators stay within reasonable bounds after immediate adjustment
+            indicators.creditGrowth = Math.max(0, Math.min(indicators.creditGrowth, 30));
+            indicators.gdpGrowth = Math.max(-5, Math.min(indicators.gdpGrowth, 12));
+            indicators.inflation = Math.max(0, Math.min(indicators.inflation, 15));
+            indicators.unemployment = Math.max(1, Math.min(indicators.unemployment, 20));
+
+            updateDisplays();
+        }
+
+        function recordHistoricalData() {
+            simulationTimeStep++;
+            historicalData.time.push(simulationTimeStep);
+            historicalData.gdpGrowth.push(parseFloat(indicators.gdpGrowth.toFixed(1)));
+            historicalData.inflation.push(parseFloat(indicators.inflation.toFixed(1)));
+            historicalData.unemployment.push(parseFloat(indicators.unemployment.toFixed(1)));
+            historicalData.creditGrowth.push(parseFloat(indicators.creditGrowth.toFixed(1)));
+        }
+
+        function updateChart() {
+            if (chartInstance) {
+                chartInstance.data.labels = historicalData.time;
+                chartInstance.data.datasets[0].data = historicalData.gdpGrowth;
+                chartInstance.data.datasets[1].data = historicalData.inflation;
+                chartInstance.data.datasets[2].data = historicalData.unemployment;
+                chartInstance.data.datasets[3].data = historicalData.creditGrowth;
+                chartInstance.update();
+            }
+        }
+        
+        function runSingleSimulationStep() {
+            applyPolicyChange(); // This applies the effect of current settings
+            recordHistoricalData();
+            updateChart();
+            checkRiskWarnings();
+        }
+
+        function startSimulation() {
+            if (simulationInterval) clearInterval(simulationInterval); // Clear any existing interval
+            
+            // Reset history for a new simulation run, but keep current indicator values as starting point
+            historicalData = { time: [], gdpGrowth: [], inflation: [], unemployment: [], creditGrowth: [] };
+            simulationTimeStep = 0;
+            recordHistoricalData(); // Record initial state for the chart
+            updateChart();
+
+            let currentPeriod = 0;
+            setControlsEnabled(false);
+
+            simulationInterval = setInterval(() => {
+                currentPeriod++;
+                runSingleSimulationStep();
+                if (currentPeriod >= SIMULATION_PERIODS) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                    setControlsEnabled(true);
+                    console.log("Simulation finished.");
+                }
+            }, 700); // Run step every 700ms
+        }
+        
+        function setControlsEnabled(enabled) {
+            policyRateSlider.disabled = !enabled;
+            reserveRequirementSlider.disabled = !enabled;
+            omoAmountSlider.disabled = !enabled;
+            runSimulationBtn.disabled = !enabled;
+            // Keep reset and scenario buttons always enabled for now, or manage their state too
+            crisisScenarioBtn.disabled = !enabled;
+            moderateEasingScenarioBtn.disabled = !enabled;
+            neutralScenarioBtn.disabled = !enabled;
+            tighteningScenarioBtn.disabled = !enabled;
+
+            runSimulationBtn.classList.toggle('opacity-50', !enabled);
+            runSimulationBtn.classList.toggle('cursor-not-allowed', !enabled);
+        }
+
+
+        function resetAll() {
+            if (simulationInterval) clearInterval(simulationInterval);
+            simulationInterval = null;
+            setControlsEnabled(true);
+
+            config.policyRate = BASE_VALUES.policyRate;
+            config.reserveRequirement = BASE_VALUES.reserveRequirement;
+            config.omoAmount = BASE_VALUES.omoAmount;
+
+            indicators.gdpGrowth = BASE_VALUES.gdpGrowth;
+            indicators.inflation = BASE_VALUES.inflation;
+            indicators.unemployment = BASE_VALUES.unemployment;
+            indicators.creditGrowth = BASE_VALUES.creditGrowth;
+            
+            historicalData = { time: [], gdpGrowth: [], inflation: [], unemployment: [], creditGrowth: [] };
+            simulationTimeStep = 0;
+            
+            updateDisplays();
+            recordHistoricalData(); // Record initial state for chart
+            updateChart(); // Clear chart or show initial state
+        }
+
+        function applyPreset(presetConfig) {
+            if (simulationInterval) clearInterval(simulationInterval); // Stop running simulation if any
+            setControlsEnabled(true);
+
+            config.policyRate = presetConfig.policyRate;
+            config.reserveRequirement = presetConfig.reserveRequirement;
+            config.omoAmount = presetConfig.omoAmount;
+            
+            // When applying a preset, we can either reset indicators to base OR
+            // let the new policy affect current indicators. For simplicity and immediate feedback,
+            // let's reset indicators to base, then apply one step of the new policy.
+            indicators.gdpGrowth = BASE_VALUES.gdpGrowth;
+            indicators.inflation = BASE_VALUES.inflation;
+            indicators.unemployment = BASE_VALUES.unemployment;
+            indicators.creditGrowth = BASE_VALUES.creditGrowth;
+            
+            applyPolicyChange(); // Apply one immediate step based on new preset
+            
+            // Reset history for chart
+            historicalData = { time: [], gdpGrowth: [], inflation: [], unemployment: [], creditGrowth: [] };
+            simulationTimeStep = 0;
+            recordHistoricalData(); // Record this new state
+            updateDisplays();
+            updateChart();
+        }
+
+        function checkRiskWarnings() {
+            riskWarningsContainer.innerHTML = ''; // Clear previous warnings
+            let hasWarnings = false;
+
+            if (indicators.inflation > 6) {
+                const warning = document.createElement('p');
+                warning.className = 'risk-alert high-inflation';
+                warning.textContent = `Lạm phát cao (${indicators.inflation.toFixed(1)}%)! Nguy cơ bất ổn kinh tế.`;
+                riskWarningsContainer.appendChild(warning);
+                hasWarnings = true;
+            }
+             if (indicators.inflation > 4 && indicators.inflation <= 6) {
+                const warning = document.createElement('p');
+                warning.className = 'risk-alert high-inflation';
+                warning.textContent = `Lạm phát có xu hướng tăng (${indicators.inflation.toFixed(1)}%). Cần theo dõi.`;
+                riskWarningsContainer.appendChild(warning);
+                hasWarnings = true;
+            }
+            if (indicators.unemployment > 7) {
+                const warning = document.createElement('p');
+                warning.className = 'risk-alert high-unemployment';
+                warning.textContent = `Tỷ lệ thất nghiệp cao (${indicators.unemployment.toFixed(1)}%)! Cần các biện pháp hỗ trợ.`;
+                riskWarningsContainer.appendChild(warning);
+                hasWarnings = true;
+            }
+            if (indicators.gdpGrowth < 1) {
+                const warning = document.createElement('p');
+                warning.className = 'risk-alert low-gdp';
+                warning.textContent = `Tăng trưởng GDP thấp (${indicators.gdpGrowth.toFixed(1)}%)! Nguy cơ suy giảm.`;
+                riskWarningsContainer.appendChild(warning);
+                hasWarnings = true;
+            }
+            if (indicators.creditGrowth > 20) {
+                const warning = document.createElement('p');
+                warning.className = 'risk-alert high-credit';
+                warning.textContent = `Tăng trưởng tín dụng cao (${indicators.creditGrowth.toFixed(1)}%)! Rủi ro bong bóng tài sản.`;
+                riskWarningsContainer.appendChild(warning);
+                hasWarnings = true;
+            }
+
+            if (!hasWarnings) {
+                const noWarning = document.createElement('p');
+                noWarning.className = 'text-sm text-slate-500';
+                noWarning.textContent = 'Hiện chưa có cảnh báo nào đáng kể.';
+                riskWarningsContainer.appendChild(noWarning);
+            }
+        }
+
+        // --- Event Listeners ---
+        policyRateSlider.addEventListener('input', (e) => {
+            config.policyRate = parseFloat(e.target.value);
+            updateDisplays(); // Update display immediately
+        });
+        policyRateSlider.addEventListener('change', () => { // Apply effect on release
+            applyPolicyChange();
+            recordHistoricalData(); 
+            updateChart();
+        });
+
+        reserveRequirementSlider.addEventListener('input', (e) => {
+            config.reserveRequirement = parseFloat(e.target.value);
+            updateDisplays();
+        });
+         reserveRequirementSlider.addEventListener('change', () => {
+            applyPolicyChange();
+            recordHistoricalData();
+            updateChart();
+        });
+
+        omoAmountSlider.addEventListener('input', (e) => {
+            config.omoAmount = parseInt(e.target.value);
+            updateDisplays();
+        });
+        omoAmountSlider.addEventListener('change', () => {
+            applyPolicyChange();
+            recordHistoricalData();
+            updateChart();
+        });
+
+        runSimulationBtn.addEventListener('click', startSimulation);
+        resetSimulationBtn.addEventListener('click', resetAll);
+
+        crisisScenarioBtn.addEventListener('click', () => applyPreset({ policyRate: 1.0, reserveRequirement: 2.0, omoAmount: 300 }));
+        moderateEasingScenarioBtn.addEventListener('click', () => applyPreset({ policyRate: 3.0, reserveRequirement: 4.0, omoAmount: 200 }));
+        neutralScenarioBtn.addEventListener('click', () => applyPreset({ policyRate: 5.0, reserveRequirement: 6.0, omoAmount: 100 }));
+        tighteningScenarioBtn.addEventListener('click', () => applyPreset({ policyRate: 8.0, reserveRequirement: 8.0, omoAmount: 50 })); // OMO 50 means less stimulus
+
+        // --- Chart Initialization ---
+        function initChart() {
+            const ctx = chartCanvas.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicalData.time,
+                    datasets: [
+                        {
+                            label: 'Tăng trưởng GDP (%)',
+                            data: historicalData.gdpGrowth,
+                            borderColor: 'rgb(59, 130, 246)', // blue-500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1,
+                            fill: true,
+                        },
+                        {
+                            label: 'Lạm phát (%)',
+                            data: historicalData.inflation,
+                            borderColor: 'rgb(239, 68, 68)', // red-500
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.1,
+                            fill: true,
+                        },
+                        {
+                            label: 'Tỷ lệ thất nghiệp (%)',
+                            data: historicalData.unemployment,
+                            borderColor: 'rgb(245, 158, 11)', // amber-500
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.1,
+                            fill: true,
+                        },
+                        {
+                            label: 'Tăng trưởng tín dụng (%)',
+                            data: historicalData.creditGrowth,
+                            borderColor: 'rgb(34, 197, 94)', // green-500
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.1,
+                            fill: true,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Crucial for custom height
+                    scales: {
+                        y: {
+                            beginAtZero: false, // Allow negative GDP growth
+                            title: { display: true, text: 'Giá trị (%)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Thời gian (Tháng mô phỏng)'}
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    animation: {
+                        duration: 300 // smoother animation
+                    }
+                }
+            });
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            updateDisplays();
+            initChart();
+            recordHistoricalData(); // Record initial state for chart
+            updateChart(); // Display initial chart
+            checkRiskWarnings(); // Initial check
+        };
+    </script>
+</body>
+</html>
