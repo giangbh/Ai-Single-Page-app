@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân tích Chỉ số Tài chính Ngân hàng Quý 1/2025 - Tích hợp AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        .panel-header {
+            border-bottom: 1px solid #e5e7eb; /* Light gray border */
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .panel-header h2 {
+            color: #1e3a8a; /* Darker blue for panel titles */
+            font-size: 1.25rem; /* Slightly larger panel titles */
+            font-weight: 600;
+        }
+        .panel {
+            background-color: white;
+            padding: 1.5rem; /* 24px */
+            border-radius: 0.75rem; /* 12px */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
+        }
+        th[data-sort] { 
+            cursor: pointer; 
+            user-select: none;
+        }
+        th[data-sort] .sort-indicator {
+            font-size: 0.7em;
+            margin-left: 4px;
+            color: #9ca3af; /* Gray-400 */
+            display: inline-block;
+            width: 1em; /* Ensure space for indicator */
+        }
+        th[data-sort].sorted-asc .sort-indicator::after { content: '▲'; color: #2563eb; }
+        th[data-sort].sorted-desc .sort-indicator::after { content: '▼'; color: #2563eb; }
+
+        .table-container { max-height: 350px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;}
+        .checkbox-container { 
+            max-height: 220px; 
+            overflow-y: auto; 
+            border: 1px solid #e5e7eb; 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            background-color: #f9fafb; /* Light gray for checkbox area */
+        }
+        .checkbox-item label:hover {
+            background-color: #eff6ff; /* Lighter blue on hover */
+        }
+        .chart-container-medium { height: 400px; }
+        
+        .btn {
+            padding: 0.625rem 1.25rem; /* 10px 20px */
+            border-radius: 0.5rem; /* 8px */
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .btn:active {
+            transform: translateY(0px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* Tailwind blue-600 */
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* Gray-500 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* Gray-600 */
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        .btn-outline:hover {
+            background-color: #eff6ff; /* Light blue */
+        }
+        .btn-ai { /* Specific style for AI button */
+            background: linear-gradient(to right, #6366f1, #8b5cf6); /* Indigo to Purple gradient */
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        .btn-ai:hover {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+        }
+
+
+        select, .styled-input {
+            padding: 0.625rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db; /* Gray-300 */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        select:focus, .styled-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem; /* 14px */
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #e5e7eb; /* Gray-200 */
+            padding: 0.75rem; /* 12px */
+            text-align: left;
+        }
+        .comparison-table thead th {
+            background-color: #f3f4f6; /* Gray-100 */
+            font-weight: 600;
+            color: #374151; /* Gray-700 */
+            white-space: nowrap;
+        }
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* Gray-50 for even rows */
+        }
+        .comparison-table td:not(:first-child) {
+            text-align: right;
+        }
+        .details-list p {
+            padding: 0.25rem 0;
+        }
+        .details-list strong {
+            color: #4b5563; /* Gray-600 */
+        }
+        .details-list hr {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-color: #e5e7eb;
+        }
+        .ai-analysis-section {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f9fafb; /* Light gray background */
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        .ai-analysis-section h4 {
+            font-weight: 600;
+            color: #4f46e5; /* Indigo */
+            margin-bottom: 0.5rem;
+        }
+        .ai-analysis-content {
+            font-size: 0.875rem;
+            color: #374151; /* Gray-700 */
+            white-space: pre-wrap; /* Preserve line breaks from AI */
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #6366f1; /* Indigo */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 md:p-6 lg:p-8">
+    <div class="container mx-auto max-w-screen-xl">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
+                Phân tích Tài chính Ngân hàng
+            </h1>
+            <p class="text-slate-600 mt-3 text-lg">Quý 1/2025 - Dữ liệu 27 NHTM niêm yết (Tích hợp AI)</p>
+        </header>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Chọn Ngân hàng</h2>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                    <p class="text-sm text-slate-600 mb-2 sm:mb-0">Chọn các ngân hàng bạn muốn phân tích chi tiết hoặc so sánh.</p>
+                    <div>
+                        <button id="selectAllBtn" class="btn btn-outline text-xs px-3 py-1.5 mr-2">Chọn tất cả</button>
+                        <button id="deselectAllBtn" class="btn btn-outline text-xs px-3 py-1.5">Bỏ chọn tất cả</button>
+                    </div>
+                </div>
+                <div id="bankCheckboxContainer" class="checkbox-container grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-2">
+                    </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 id="detailsPanelTitle">Chi tiết / So sánh</h2>
+                </div>
+                <div id="bankDetailsContainer" class="text-sm">
+                    <p class="text-slate-500 italic">Chọn một hoặc nhiều ngân hàng từ danh sách bên trên để xem thông tin.</p>
+                </div>
+                <div id="aiAnalysisSection" class="ai-analysis-section hidden">
+                    <h4>✨ Phân tích Nhanh từ AI</h4>
+                    <div id="aiAnalysisContent" class="ai-analysis-content">
+                        </div>
+                    <div id="aiLoadingSpinner" class="loading-spinner hidden"></div>
+                     <p class="text-xs text-slate-500 mt-2 italic">Lưu ý: Phân tích này được tạo bởi AI và chỉ mang tính chất tham khảo.</p>
+                </div>
+            </div>
+       
+            <div class="panel">
+                 <div class="panel-header">
+                    <h2>Danh sách Tổng quan</h2>
+                </div>
+                <p class="text-sm text-slate-600 mb-3">Nhấp vào tiêu đề cột để sắp xếp.</p>
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-100 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" data-sort="name">Tên NH <span class="sort-indicator"></span></th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" data-sort="totalAssets">Tổng TS (tỷ VNĐ) <span class="sort-indicator"></span></th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" data-sort="nplRatio">Nợ xấu (%) <span class="sort-indicator"></span></th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" data-sort="roa">ROA (%) <span class="sort-indicator"></span></th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider" data-sort="roe">ROE (%) <span class="sort-indicator"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="bankTableBody" class="bg-white divide-y divide-slate-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                 <div class="panel-header">
+                    <h2>Biểu đồ So sánh Chỉ số</h2>
+                </div>
+                <div class="mb-4">
+                    <label for="chartMetricSelect" class="block text-sm font-medium text-slate-700 mb-1">Chọn chỉ số để hiển thị trên biểu đồ:</label>
+                    <select id="chartMetricSelect" class="styled-input w-full md:w-1/2 lg:w-1/3">
+                        <option value="all_percentage">-- Tổng hợp Chỉ số (%) (cho 1 NH) --</option>
+                        <option value="roa">ROA (%)</option>
+                        <option value="roe">ROE (%)</option>
+                        <option value="nplRatio">Tỷ lệ Nợ xấu (%)</option>
+                        <option value="nim">NIM (%)</option>
+                        <option value="cir">CIR (%)</option>
+                        <option value="totalAssets">Tổng Tài sản (tỷ VNĐ)</option>
+                        <option value="equityToAssetsRatio">Tỷ lệ VCSH/Tổng TS (%)</option>
+                        <option value="demandDepositRatio">Tỷ trọng Tiền gửi KKH (%)</option>
+                        <option value="netFeeIncomeRatio">Tỷ trọng Thu nhập DV ròng (%)</option>
+                        <option value="nplCoverageRatio">Tỷ lệ bao Nợ xấu (%)</option>
+                    </select>
+                </div>
+                <div class="chart-container-medium">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+         <footer class="text-center mt-10 mb-6 text-sm text-slate-500">
+            <p>Lưu ý: Dữ liệu trong ứng dụng này được trích xuất từ báo cáo Q1/2025 và chỉ mang tính chất minh họa.</p>
+            <p>&copy; 2025 - BIDV Financial Analysis Tool (Demo with AI)</p>
+        </footer>
+    </div>
+
+    <script>
+        // Full Bank Data for Q1/2025 (27 Banks)
+        const bankData = [
+            { name: "ACB", totalAssets: 891675, totalLoans: 598806, totalDeposits: 664427, demandDepositRatio: 21.54, netFeeIncomeRatio: 11.02, nplRatio: 1.48, nplCoverageRatio: 72.08, roa: 1.68, roe: 18.62, nim: 2.95, cir: 34.01, equity: 87075, equityToAssetsRatio: 9.77 },
+            { name: "BID", totalAssets: 2856111, totalLoans: 2107330, totalDeposits: 2187577, demandDepositRatio: 18.28, netFeeIncomeRatio: 8.60, nplRatio: 1.89, nplCoverageRatio: 96.85, roa: 0.85, roe: 17.09, nim: 2.01, cir: 33.00, equity: 155906, equityToAssetsRatio: 5.46 },
+            { name: "CTG", totalAssets: 2469863, totalLoans: 1800459, totalDeposits: 1824584, demandDepositRatio: 23.58, netFeeIncomeRatio: 7.87, nplRatio: 1.55, nplCoverageRatio: 136.82, roa: 0.91, roe: 15.63, nim: 2.58, cir: 26.98, equity: 153982, equityToAssetsRatio: 6.23 },
+            { name: "HDB", totalAssets: 711311, totalLoans: 446106, totalDeposits: 553672, demandDepositRatio: 9.59, netFeeIncomeRatio: 7.97, nplRatio: 2.37, nplCoverageRatio: 53.30, roa: 2.47, roe: 32.45, nim: 4.56, cir: 27.43, equity: 61033, equityToAssetsRatio: 8.58 },
+            { name: "MBB", totalAssets: 1156917, totalLoans: 797537, totalDeposits: 869220, demandDepositRatio: 34.82, netFeeIncomeRatio: 8.06, nplRatio: 1.84, nplCoverageRatio: 75.26, roa: 2.34, roe: 24.23, nim: 4.19, cir: 25.78, equity: 123677, equityToAssetsRatio: 10.69 },
+            { name: "TCB", totalAssets: 989216, totalLoans: 663693, totalDeposits: 679516, demandDepositRatio: 33.73, netFeeIncomeRatio: 15.74, nplRatio: 1.17, nplCoverageRatio: 111.58, roa: 2.44, roe: 16.85, nim: 3.55, cir: 28.29, equity: 153953, equityToAssetsRatio: 15.56 },
+            { name: "VCB", totalAssets: 2109261, totalLoans: 1466391, totalDeposits: 1523279, demandDepositRatio: 33.38, netFeeIncomeRatio: 4.67, nplRatio: 1.03, nplCoverageRatio: 216.11, roa: 1.66, roe: 18.64, nim: 2.63, cir: 32.74, equity: 204942, equityToAssetsRatio: 9.72 },
+            { name: "VPB", totalAssets: 994037, totalLoans: 729969, totalDeposits: 631163, demandDepositRatio: 13.46, netFeeIncomeRatio: 7.51, nplRatio: 4.74, nplCoverageRatio: 47.42, roa: 1.64, roe: 10.81, nim: 5.73, cir: 24.89, equity: 151213, equityToAssetsRatio: 15.21 },
+            { name: "VIB", totalAssets: 495727, totalLoans: 334158, totalDeposits: 308098, demandDepositRatio: 14.95, netFeeIncomeRatio: 8.21, nplRatio: 3.79, nplCoverageRatio: 38.61, roa: 1.57, roe: 18.99, nim: 3.05, cir: 38.23, equity: 43643, equityToAssetsRatio: 8.80 },
+            { name: "ABB", totalAssets: 183753, totalLoans: 98045, totalDeposits: 112059, demandDepositRatio: 10.30, netFeeIncomeRatio: 12.39, nplRatio: 3.80, nplCoverageRatio: 45.90, roa: 0.74, roe: 9.56, nim: 1.92, cir: 42.15, equity: 14357, equityToAssetsRatio: 7.81 },
+            { name: "BAB", totalAssets: 175366, totalLoans: 111174, totalDeposits: 140805, demandDepositRatio: 2.67, netFeeIncomeRatio: 2.25, nplRatio: 1.26, nplCoverageRatio: 98.08, roa: 0.69, roe: 10.23, nim: 2.12, cir: 55.94, equity: 12076, equityToAssetsRatio: 6.89 },
+            { name: "BVB", totalAssets: 110118, totalLoans: 70822, totalDeposits: 83497, demandDepositRatio: 6.10, netFeeIncomeRatio: 3.23, nplRatio: 3.43, nplCoverageRatio: 44.78, roa: 0.24, roe: 4.25, nim: 1.99, cir: 59.77, equity: 6219, equityToAssetsRatio: 5.65 },
+            { name: "EIB", totalAssets: 251133, totalLoans: 180337, totalDeposits: 188425, demandDepositRatio: 14.39, netFeeIncomeRatio: 8.09, nplRatio: 2.59, nplCoverageRatio: 38.68, roa: 1.07, roe: 10.93, nim: 2.29, cir: 46.97, equity: 25757, equityToAssetsRatio: 10.26 },
+            { name: "KLB", totalAssets: 97164, totalLoans: 67959, totalDeposits: 75012, demandDepositRatio: 6.71, netFeeIncomeRatio: 14.08, nplRatio: 2.17, nplCoverageRatio: 69.16, roa: 1.20, roe: 18.09, nim: 3.92, cir: 51.05, equity: 6834, equityToAssetsRatio: 7.03 },
+            { name: "LPB", totalAssets: 499895, totalLoans: 352194, totalDeposits: 347360, demandDepositRatio: 6.87, netFeeIncomeRatio: 17.67, nplRatio: 1.73, nplCoverageRatio: 74.32, roa: 2.01, roe: 25.34, nim: 2.64, cir: 28.04, equity: 45872, equityToAssetsRatio: 9.18 },
+            { name: "MSB", totalAssets: 314727, totalLoans: 192346, totalDeposits: 184924, demandDepositRatio: 23.02, netFeeIncomeRatio: 12.80, nplRatio: 2.57, nplCoverageRatio: 59.63, roa: 1.59, roe: 14.61, nim: 3.26, cir: 37.88, equity: 38021, equityToAssetsRatio: 12.08 },
+            { name: "NAB", totalAssets: 262251, totalLoans: 177844, totalDeposits: 203138, demandDepositRatio: 5.56, netFeeIncomeRatio: 5.57, nplRatio: 2.49, nplCoverageRatio: 52.15, roa: 1.54, roe: 22.02, nim: 3.41, cir: 35.77, equity: 20214, equityToAssetsRatio: 7.71 },
+            { name: "NVB", totalAssets: 130883, totalLoans: 78041, totalDeposits: 107288, demandDepositRatio: 8.08, netFeeIncomeRatio: 4.90, nplRatio: 14.04, nplCoverageRatio: 11.18, roa: 0.48, roe: 10.64, nim: 1.76, cir: 63.84, equity: 6244, equityToAssetsRatio: 4.77 },
+            { name: "OCB", totalAssets: 289067, totalLoans: 175136, totalDeposits: 202023, demandDepositRatio: 15.43, netFeeIncomeRatio: 5.75, nplRatio: 4.56, nplCoverageRatio: 30.00, roa: 1.00, roe: 9.22, nim: 3.22, cir: 44.08, equity: 32388, equityToAssetsRatio: 11.20 },
+            { name: "PGB", totalAssets: 73552, totalLoans: 45349, totalDeposits: 50068, demandDepositRatio: 11.97, netFeeIncomeRatio: 2.67, nplRatio: 2.71, nplCoverageRatio: 38.96, roa: 0.42, roe: 6.06, nim: 2.53, cir: 52.05, equity: 5243, equityToAssetsRatio: 7.13 },
+            { name: "SGB", totalAssets: 33506, totalLoans: 20900, totalDeposits: 24540, demandDepositRatio: 6.64, netFeeIncomeRatio: 2.70, nplRatio: 3.28, nplCoverageRatio: 31.64, roa: 0.98, roe: 7.94, nim: 2.77, cir: 51.76, equity: 4172, equityToAssetsRatio: 12.45 },
+            { name: "SHB", totalAssets: 790742, totalLoans: 567948, totalDeposits: 571715, demandDepositRatio: 6.68, netFeeIncomeRatio: 5.44, nplRatio: 2.87, nplCoverageRatio: 59.17, roa: 1.82, roe: 25.12, nim: 3.04, cir: 17.51, equity: 61473, equityToAssetsRatio: 7.77 },
+            { name: "SSB", totalAssets: 333746, totalLoans: 213048, totalDeposits: 189993, demandDepositRatio: 9.88, netFeeIncomeRatio: 3.01, nplRatio: 1.84, nplCoverageRatio: 81.81, roa: 4.24, roe: 40.55, nim: 3.03, cir: 17.77, equity: 38600, equityToAssetsRatio: 11.57 },
+            { name: "STB", totalAssets: 757093, totalLoans: 564327, totalDeposits: 619601, demandDepositRatio: 17.23, netFeeIncomeRatio: 9.34, nplRatio: 2.51, nplCoverageRatio: 74.67, roa: 1.54, roe: 22.37, nim: 3.67, cir: 50.37, equity: 57862, equityToAssetsRatio: 7.64 },
+            { name: "TPB", totalAssets: 388891, totalLoans: 262477, totalDeposits: 271717, demandDepositRatio: 19.02, netFeeIncomeRatio: 20.30, nplRatio: 2.27, nplCoverageRatio: 57.06, roa: 1.67, roe: 18.68, nim: 3.48, cir: 42.03, equity: 39492, equityToAssetsRatio: 10.15 },
+            { name: "VAB", totalAssets: 129046, totalLoans: 84911, totalDeposits: 97446, demandDepositRatio: 4.29, netFeeIncomeRatio: 6.01, nplRatio: 0.63, nplCoverageRatio: 150.20, roa: 0.94, roe: 13.65, nim: 2.09, cir: 33.84, equity: 9152, equityToAssetsRatio: 7.09 },
+            { name: "VBB", totalAssets: 174378, totalLoans: 97299, totalDeposits: 123136, demandDepositRatio: 5.39, netFeeIncomeRatio: 3.99, nplRatio: 2.64, nplCoverageRatio: 49.21, roa: 0.47, roe: 10.04, nim: 1.71, cir: 52.06, equity: 8898, equityToAssetsRatio: 5.10 }
+        ];
+
+        const allMetricsMeta = [
+            { key: 'totalAssets', label: 'Tổng tài sản (tỷ VNĐ)', format: (val) => formatNumber(val, 0) },
+            { key: 'totalLoans', label: 'Tổng dư nợ (tỷ VNĐ)', format: (val) => formatNumber(val, 0) },
+            { key: 'totalDeposits', label: 'Tổng huy động vốn (tỷ VNĐ)', format: (val) => formatNumber(val, 0) },
+            { key: 'equity', label: 'Vốn chủ sở hữu (VCSH) (tỷ VNĐ)', format: (val) => formatNumber(val, 0) },
+            { key: 'nplRatio', label: 'Tỷ lệ Nợ xấu (NPL) (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'nplCoverageRatio', label: 'Tỷ lệ bao Nợ xấu (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'roa', label: 'ROA (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'roe', label: 'ROE (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'nim', label: 'NIM (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'cir', label: 'CIR (Chi phí/Thu nhập) (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'demandDepositRatio', label: 'Tỷ trọng Tiền gửi KKH (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'netFeeIncomeRatio', label: 'Tỷ trọng Thu nhập DV ròng (%)', format: (val) => formatNumber(val, 2) },
+            { key: 'equityToAssetsRatio', label: 'Tỷ lệ VCSH/Tổng TS (%)', format: (val) => formatNumber(val, 2) },
+        ];
+        
+        // Percentage-based metrics for the "All Percentage Indicators" chart view
+        const percentageMetricsMeta = allMetricsMeta.filter(metric => 
+            metric.label.includes('(%)') && 
+            // Exclude NPL Coverage Ratio as its scale can be very different (e.g., > 100%)
+            // and might skew the chart if shown with other smaller percentages.
+            // You can adjust this filter as needed.
+            metric.key !== 'nplCoverageRatio' 
+        );
+
+
+        const bankTableBody = document.getElementById('bankTableBody');
+        const bankCheckboxContainer = document.getElementById('bankCheckboxContainer');
+        const bankDetailsContainer = document.getElementById('bankDetailsContainer');
+        const detailsPanelTitle = document.getElementById('detailsPanelTitle');
+        const aiAnalysisSection = document.getElementById('aiAnalysisSection');
+        const aiAnalysisContent = document.getElementById('aiAnalysisContent');
+        const aiLoadingSpinner = document.getElementById('aiLoadingSpinner');
+
+        const chartMetricSelect = document.getElementById('chartMetricSelect');
+        const comparisonChartCanvas = document.getElementById('comparisonChart');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const deselectAllBtn = document.getElementById('deselectAllBtn');
+
+        let currentSort = { column: 'name', order: 'asc' };
+        let comparisonChartInstance;
+
+        function formatNumber(num, decimals = 2) {
+            if (typeof num !== 'number' || isNaN(num)) return '-';
+            return num.toLocaleString('vi-VN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        }
+
+        function populateMainBankTable(data) {
+            bankTableBody.innerHTML = '';
+            data.forEach(bank => {
+                const row = bankTableBody.insertRow();
+                row.className = 'hover:bg-blue-50 transition-colors duration-150';
+                row.insertCell().textContent = bank.name;
+                row.insertCell().textContent = formatNumber(bank.totalAssets, 0);
+                row.insertCell().textContent = formatNumber(bank.nplRatio);
+                row.insertCell().textContent = formatNumber(bank.roa);
+                row.insertCell().textContent = formatNumber(bank.roe);
+            });
+        }
+
+        function populateBankCheckboxes() {
+            bankCheckboxContainer.innerHTML = '';
+            bankData.sort((a,b) => a.name.localeCompare(b.name)).forEach(bank => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center checkbox-item p-1 rounded hover:bg-blue-100 transition-colors duration-150';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `chk-${bank.name}`;
+                checkbox.value = bank.name;
+                checkbox.className = 'h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2 cursor-pointer';
+                checkbox.addEventListener('change', handleSelectionChange);
+                
+                const label = document.createElement('label');
+                label.htmlFor = `chk-${bank.name}`;
+                label.textContent = bank.name;
+                label.className = 'text-sm text-slate-700 cursor-pointer flex-grow';
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                bankCheckboxContainer.appendChild(div);
+            });
+        }
+
+        function getSelectedBankNames() {
+            return Array.from(bankCheckboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(chk => chk.value);
+        }
+        
+        function handleSelectionChange() {
+            updateDetailsPanel();
+            updateComparisonChart();
+        }
+
+        async function fetchAiAnalysis(bank) {
+            aiAnalysisSection.classList.remove('hidden');
+            aiAnalysisContent.textContent = '';
+            aiLoadingSpinner.classList.remove('hidden');
+            document.getElementById(`aiAnalysisBtn-${bank.name}`)?.classList.add('opacity-50', 'cursor-not-allowed');
+
+
+            const prompt = `Dựa trên các chỉ số tài chính Quý 1/2025 của Ngân hàng ${bank.name} dưới đây, hãy đưa ra một bản tóm tắt và phân tích ngắn gọn (khoảng 80-120 từ) về tình hình hoạt động của ngân hàng này. Nêu bật những điểm mạnh và những khía cạnh cần chú ý nếu có. Trả lời bằng tiếng Việt.
+
+* Tổng Tài sản: ${formatNumber(bank.totalAssets, 0)} tỷ VNĐ
+* ROA: ${formatNumber(bank.roa, 2)}%
+* ROE: ${formatNumber(bank.roe, 2)}%
+* Tỷ lệ Nợ xấu (NPL): ${formatNumber(bank.nplRatio, 2)}%
+* Tỷ lệ bao Nợ xấu: ${formatNumber(bank.nplCoverageRatio, 2)}%
+* NIM: ${formatNumber(bank.nim, 2)}%
+* CIR: ${formatNumber(bank.cir, 2)}%
+* Tỷ lệ VCSH/Tổng TS: ${formatNumber(bank.equityToAssetsRatio, 2)}%
+
+Phân tích cần tập trung vào hiệu suất Quý 1/2025.`;
+
+            const apiKey = ""; // Canvas will provide this
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Lỗi API: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const analysisText = result.candidates[0].content.parts[0].text;
+                    aiAnalysisContent.textContent = analysisText;
+                } else {
+                    aiAnalysisContent.textContent = "Không thể nhận được phân tích từ AI vào lúc này.";
+                }
+            } catch (error) {
+                console.error("Lỗi khi gọi Gemini API:", error);
+                aiAnalysisContent.textContent = "Đã xảy ra lỗi khi cố gắng phân tích. Vui lòng thử lại sau.";
+            } finally {
+                aiLoadingSpinner.classList.add('hidden');
+                document.getElementById(`aiAnalysisBtn-${bank.name}`)?.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+
+        function renderSingleBankDetails(bankName) {
+            const bank = bankData.find(b => b.name === bankName);
+            if (!bank) return;
+            detailsPanelTitle.textContent = `Chi tiết Ngân hàng: ${bank.name}`;
+            let html = `<div class="details-list"><h3 class="text-xl font-semibold text-blue-700 mb-3">${bank.name}</h3>`;
+            allMetricsMeta.forEach(metric => {
+                html += `<p><strong>${metric.label}:</strong> ${metric.format(bank[metric.key])}</p>`;
+                if (['equity', 'nplCoverageRatio', 'cir'].includes(metric.key)) {
+                    html += '<hr>';
+                }
+            });
+            // Add AI Analysis Button
+            html += `<div class="mt-4">
+                        <button id="aiAnalysisBtn-${bank.name}" class="btn btn-ai" onclick="fetchAiAnalysis(bankData.find(b => b.name === '${bank.name}'))">
+                            ✨ Phân tích Nhanh với AI
+                        </button>
+                     </div>`;
+            html += '</div>';
+            bankDetailsContainer.innerHTML = html;
+            aiAnalysisSection.classList.add('hidden'); // Hide AI section until button is clicked
+            aiAnalysisContent.textContent = '';
+        }
+
+        function renderMultiBankComparisonTable(selectedBankNames) {
+            detailsPanelTitle.textContent = `So sánh Chi tiết (${selectedBankNames.length} Ngân hàng)`;
+            const selectedBanksData = selectedBankNames.map(name => bankData.find(b => b.name === name));
+            
+            let tableHtml = '<div class="overflow-x-auto"><table class="comparison-table"><thead><tr><th>Chỉ số</th>';
+            selectedBanksData.forEach(bank => {
+                tableHtml += `<th>${bank.name}</th>`;
+            });
+            tableHtml += '</tr></thead><tbody>';
+
+            allMetricsMeta.forEach(metric => {
+                tableHtml += `<tr><td><strong>${metric.label}</strong></td>`;
+                selectedBanksData.forEach(bank => {
+                    tableHtml += `<td>${metric.format(bank[metric.key])}</td>`;
+                });
+                tableHtml += '</tr>';
+            });
+            tableHtml += '</tbody></table></div>';
+            bankDetailsContainer.innerHTML = tableHtml;
+            aiAnalysisSection.classList.add('hidden'); // Hide AI section for multi-bank comparison
+        }
+
+        function updateDetailsPanel() {
+            const selectedNames = getSelectedBankNames();
+            if (selectedNames.length === 1) {
+                renderSingleBankDetails(selectedNames[0]);
+            } else if (selectedNames.length > 1) {
+                renderMultiBankComparisonTable(selectedNames);
+            } else {
+                detailsPanelTitle.textContent = 'Chi tiết / So sánh';
+                bankDetailsContainer.innerHTML = '<p class="text-slate-500 italic">Chọn một hoặc nhiều ngân hàng từ danh sách bên trên để xem thông tin hoặc so sánh.</p>';
+                aiAnalysisSection.classList.add('hidden');
+            }
+        }
+        
+        function updateSortIndicators(activeHeader) {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            if (activeHeader) {
+                activeHeader.classList.add(currentSort.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+        }
+
+        function sortMainTableData(column, headerElement) {
+            const order = (currentSort.column === column && currentSort.order === 'asc') ? 'desc' : 'asc';
+            currentSort = { column, order };
+
+            const sortedData = [...bankData].sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (valA < valB) return order === 'asc' ? -1 : 1;
+                if (valA > valB) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            populateMainBankTable(sortedData);
+            updateSortIndicators(headerElement);
+        }
+
+        function initComparisonChart() {
+            const ctx = comparisonChartCanvas.getContext('2d');
+            Chart.defaults.font.family = 'Inter'; 
+            comparisonChartInstance = new Chart(ctx, {
+                type: 'bar', // Default type
+                data: { 
+                    labels: [], 
+                    datasets: [{ 
+                        label: '', 
+                        data: [], 
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)', 
+                        borderColor: 'rgba(37, 99, 235, 1)', 
+                        borderWidth: 1,
+                        borderRadius: 4, 
+                        hoverBackgroundColor: 'rgba(37, 99, 235, 0.9)'
+                    }] 
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            title: { display: true, text: 'Giá trị', font: { weight: '600' } },
+                            grid: { color: '#e5e7eb' } 
+                        }, 
+                        x: { 
+                            title: { display: true, text: 'Ngân hàng/Chỉ số', font: { weight: '600' } }, // Generic X-axis title
+                            grid: { display: false } 
+                        } 
+                    },
+                    plugins: { 
+                        legend: { display: true, position: 'bottom', labels: { font: { size: 13 } } },
+                        tooltip: {
+                            backgroundColor: '#1e3a8a', 
+                            titleFont: { weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 10,
+                            cornerRadius: 6,
+                            boxPadding: 4
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateComparisonChart() {
+            if (!comparisonChartInstance) return;
+            const selectedMetricKey = chartMetricSelect.value;
+            const selectedBankNames = getSelectedBankNames();
+            
+            comparisonChartInstance.config.type = 'bar'; // Reset to bar chart by default
+            comparisonChartInstance.options.scales.x.title.text = 'Ngân hàng'; // Default X-axis title
+            comparisonChartInstance.options.scales.y.title.text = 'Giá trị'; // Default Y-axis title
+            comparisonChartInstance.data.datasets = [{ // Reset to single dataset structure
+                label: '', 
+                data: [], 
+                backgroundColor: 'rgba(59, 130, 246, 0.7)', 
+                borderColor: 'rgba(37, 99, 235, 1)', 
+                borderWidth: 1,
+                borderRadius: 4, 
+                hoverBackgroundColor: 'rgba(37, 99, 235, 0.9)'
+            }];
+
+
+            if (selectedMetricKey === 'all_percentage') {
+                if (selectedBankNames.length === 1) {
+                    const bankName = selectedBankNames[0];
+                    const bank = bankData.find(b => b.name === bankName);
+                    if (bank) {
+                        comparisonChartInstance.data.labels = percentageMetricsMeta.map(m => m.label.replace(' (%)', '').replace(' (NPL)', '').replace(' (Chi phí/Thu nhập)','').replace(' (VCSH/Tổng TS)','').replace('Tiền gửi KKH','TG KKH').replace('Thu nhập DV ròng','TN DV ròng'));
+                        comparisonChartInstance.data.datasets[0].data = percentageMetricsMeta.map(m => bank[m.key]);
+                        comparisonChartInstance.data.datasets[0].label = `Các chỉ số (%) của ${bank.name}`;
+                        comparisonChartInstance.options.scales.x.title.text = 'Chỉ số';
+                        comparisonChartInstance.options.scales.y.title.text = 'Giá trị (%)';
+                    } else { // Should not happen if bankNames is populated
+                        comparisonChartInstance.data.labels = [];
+                        comparisonChartInstance.data.datasets[0].data = [];
+                        comparisonChartInstance.data.datasets[0].label = '';
+                    }
+                } else { // "All %" selected, but not exactly one bank
+                    comparisonChartInstance.data.labels = [];
+                    comparisonChartInstance.data.datasets[0].data = [];
+                    comparisonChartInstance.data.datasets[0].label = 'Vui lòng chọn 1 NH để xem tổng hợp chỉ số (%)';
+                }
+            } else { // A specific metric is selected
+                const metricLabel = chartMetricSelect.options[chartMetricSelect.selectedIndex].text;
+                let banksToChart = [];
+                if (selectedBankNames.length > 0) {
+                    banksToChart = bankData.filter(b => selectedBankNames.includes(b.name));
+                } else { 
+                    banksToChart = [...bankData]; // Show all banks if no specific selection for a single metric
+                }
+                
+                banksToChart.sort((a,b) => { 
+                    const valA = typeof a[selectedMetricKey] === 'number' ? a[selectedMetricKey] : -Infinity;
+                    const valB = typeof b[selectedMetricKey] === 'number' ? b[selectedMetricKey] : -Infinity;
+                    return valB - valA;
+                });
+
+                comparisonChartInstance.data.labels = banksToChart.map(b => b.name);
+                comparisonChartInstance.data.datasets[0].data = banksToChart.map(b => b[selectedMetricKey]);
+                comparisonChartInstance.data.datasets[0].label = metricLabel;
+                comparisonChartInstance.options.scales.x.title.text = 'Ngân hàng';
+                comparisonChartInstance.options.scales.y.title.text = metricLabel.includes('(tỷ VNĐ)') ? 'Giá trị (tỷ VNĐ)' : (metricLabel.includes('%') ? 'Giá trị (%)' : 'Giá trị');
+            }
+            comparisonChartInstance.update();
+        }
+        
+        document.querySelectorAll('th[data-sort]').forEach(header => {
+            header.addEventListener('click', (e) => sortMainTableData(header.dataset.sort, header));
+        });
+
+        chartMetricSelect.addEventListener('change', updateComparisonChart);
+        
+        selectAllBtn.addEventListener('click', () => {
+            bankCheckboxContainer.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = true);
+            handleSelectionChange();
+        });
+
+        deselectAllBtn.addEventListener('click', () => {
+            bankCheckboxContainer.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.checked = false);
+            handleSelectionChange();
+        });
+
+        window.onload = () => {
+            const initialSortHeader = document.querySelector('th[data-sort="name"]');
+            bankData.sort((a,b) => a.name.localeCompare(b.name));
+            
+            populateMainBankTable(bankData); 
+            if(initialSortHeader) updateSortIndicators(initialSortHeader);
+
+            populateBankCheckboxes(); 
+            initComparisonChart(); // Initialize chart structure
+            
+            // Set default chart view after initialization
+            chartMetricSelect.value = 'all_percentage'; // Ensure default is selected
+            updateDetailsPanel(); // Update details panel based on no initial selection
+            updateComparisonChart(); // Update chart based on default "all_percentage" and no bank selection
+        };
+    </script>
+</body>
+</html>
