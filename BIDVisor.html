@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIDVisor - Ứng Dụng Phân Tích Tài Chính Cá Nhân</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-value.positive {
+            color: #27ae60;
+        }
+
+        .stat-value.negative {
+            color: #e74c3c;
+        }
+
+        .stat-value.neutral {
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ecf0f1;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #7f8c8d;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .transaction-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-desc {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .transaction-date {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .amount-positive {
+            color: #27ae60;
+        }
+
+        .amount-negative {
+            color: #e74c3c;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .summary-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .summary-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .insights {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .insights h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .insight-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏦 BIDVisor</h1>
+            <p>Ứng dụng phân tích tài chính cá nhân thông minh - Phân tích dữ liệu từ tháng 8/2024 đến tháng 4/2025</p>
+        </div>
+
+        <!-- Dashboard Overview -->
+        <div class="dashboard-grid">
+            <div class="card stat-card">
+                <h3>Số Dư Hiện Tại</h3>
+                <div class="stat-value positive" id="currentBalance">101,645,791</div>
+                <div class="stat-label">VND</div>
+            </div>
+            
+            <div class="card stat-card">
+                <h3>Thu Nhập Tháng Này</h3>
+                <div class="stat-value positive" id="monthlyIncome">45,354,143</div>
+                <div class="stat-label">VND</div>
+            </div>
+            
+            <div class="card stat-card">
+                <h3>Chi Tiêu Tháng Này</h3>
+                <div class="stat-value negative" id="monthlyExpense">3,867,763</div>
+                <div class="stat-label">VND</div>
+            </div>
+            
+            <div class="card stat-card">
+                <h3>Tỷ Lệ Tiết Kiệm</h3>
+                <div class="stat-value neutral" id="savingsRate">91.5%</div>
+                <div class="stat-label">% Thu nhập</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📈 Xu Hướng Số Dư</h3>
+                <div class="chart-container">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>💰 Thu Nhập vs Chi Tiêu</h3>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Analysis -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('income')">Thu Nhập</button>
+                <button class="tab" onclick="switchTab('expense')">Chi Tiêu</button>
+                <button class="tab" onclick="switchTab('transactions')">Giao Dịch</button>
+                <button class="tab" onclick="switchTab('reports')">Báo Cáo</button>
+            </div>
+
+            <div id="income" class="tab-content active">
+                <h3>🎯 Phân Tích Thu Nhập</h3>
+                <div class="chart-container">
+                    <canvas id="incomeBreakdownChart"></canvas>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-title">Lương Trung Bình/Tháng</div>
+                        <div class="summary-value">90,000,000 VND</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Thưởng KPIs Cao Nhất</div>
+                        <div class="summary-value">39,630,937 VND</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Thu Nhập Khác</div>
+                        <div class="summary-value">5,000 VND/ngày</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="expense" class="tab-content">
+                <h3>💳 Phân Tích Chi Tiêu</h3>
+                <div class="chart-container">
+                    <canvas id="expenseBreakdownChart"></canvas>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-title">Giao Thông (Taxi)</div>
+                        <div class="summary-value">~2,000,000 VND/tháng</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Hóa Đơn Điện</div>
+                        <div class="summary-value">~4,000,000 VND/tháng</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Internet</div>
+                        <div class="summary-value">250,000 VND/tháng</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="transactions" class="tab-content">
+                <h3>📋 Giao Dịch Gần Đây</h3>
+                <div class="transaction-list" id="transactionList">
+                    <!-- Transactions will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="reports" class="tab-content">
+                <h3>📊 Báo Cáo Tài Chính</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-title">Tổng Thu Nhập (8 tháng)</div>
+                        <div class="summary-value">~720,000,000 VND</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Tổng Chi Tiêu (8 tháng)</div>
+                        <div class="summary-value">~450,000,000 VND</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Tiết Kiệm Thuần</div>
+                        <div class="summary-value">~270,000,000 VND</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-title">Số Dư Tăng Trưởng</div>
+                        <div class="summary-value">+347% (8 tháng)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="insights">
+            <h3>🤖 Phân Tích Thông Minh</h3>
+            <div class="insight-item">
+                <strong>💡 Xu hướng tích cực:</strong> Số dư tài khoản của bạn đã tăng đáng kể từ 35M VND (8/2024) lên 101M VND (4/2025), cho thấy khả năng quản lý tài chính tốt.
+            </div>
+            <div class="insight-item">
+                <strong>⚠️ Cần chú ý:</strong> Chi phí taxi cao (~2M VND/tháng). Có thể cân nhắc phương tiện cá nhân để tiết kiệm.
+            </div>
+            <div class="insight-item">
+                <strong>🎯 Gợi ý:</strong> Với thu nhập ổn định và tỷ lệ tiết kiệm cao, bạn có thể cân nhắc đầu tư đa dạng hóa.
+            </div>
+            <div class="insight-item">
+                <strong>📈 Dự báo:</strong> Nếu duy trì mức tiết kiệm hiện tại, số dư có thể đạt 150M VND vào cuối năm 2025.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample transaction data based on the CSV
+        const transactions = [
+            { date: '2025-04-04', desc: 'Chuyển tiền 1290667271', amount: -280000000, type: 'transfer' },
+            { date: '2025-04-04', desc: 'Nhận chuyển tiền', amount: 314000000, type: 'income' },
+            { date: '2025-04-04', desc: 'Thanh toán VNPAY Taxi', amount: -75000, type: 'transport' },
+            { date: '2025-04-03', desc: 'Thanh toán VNPAY Taxi', amount: -61000, type: 'transport' },
+            { date: '2025-04-03', desc: 'Thanh toán thẻ tín dụng', amount: -1846186, type: 'payment' },
+            { date: '2025-04-03', desc: 'Tiền điện Trần Thị Mây', amount: -2102229, type: 'utility' },
+            { date: '2025-04-03', desc: 'Tiền điện Hoàng Hiếu', amount: -1545908, type: 'utility' },
+            { date: '2025-04-03', desc: 'Internet Viettel', amount: -250000, type: 'utility' },
+            { date: '2025-03-28', desc: 'Lương cuối kỳ 03/2025', amount: 45354143, type: 'salary' },
+            { date: '2025-03-28', desc: 'Quyết toán thu nhập 2024', amount: 302041916, type: 'bonus' }
+        ];
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Balance trend chart
+            const balanceCtx = document.getElementById('balanceChart').getContext('2d');
+            new Chart(balanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['T8/2024', 'T9/2024', 'T10/2024', 'T11/2024', 'T12/2024', 'T1/2025', 'T2/2025', 'T3/2025', 'T4/2025'],
+                    datasets: [{
+                        label: 'Số dư (triệu VND)',
+                        data: [35, 55, 27, 44, 75, 15, 34, 10, 101],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Income vs Expense chart
+            const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+            new Chart(incomeExpenseCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['T1/2025', 'T2/2025', 'T3/2025', 'T4/2025'],
+                    datasets: [{
+                        label: 'Thu nhập',
+                        data: [97, 105, 347, 45],
+                        backgroundColor: '#27ae60',
+                        borderRadius: 5
+                    }, {
+                        label: 'Chi tiêu',
+                        data: [45, 35, 42, 38],
+                        backgroundColor: '#e74c3c',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Triệu VND'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Income breakdown chart
+            const incomeBreakdownCtx = document.getElementById('incomeBreakdownChart').getContext('2d');
+            new Chart(incomeBreakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lương cơ bản', 'Thưởng KPIs', 'Thưởng HTNV', 'Thưởng Tết', 'Thu nhập khác'],
+                    datasets: [{
+                        data: [65, 20, 8, 5, 2],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#f39c12',
+                            '#e74c3c',
+                            '#9b59b6'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Expense breakdown chart
+            const expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+            new Chart(expenseBreakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Giao thông', 'Tiện ích', 'Thẻ tín dụng', 'Chuyển khoản', 'Khác'],
+                    datasets: [{
+                        data: [25, 30, 20, 20, 5],
+                        backgroundColor: [
+                            '#e74c3c',
+                            '#f39c12',
+                            '#3498db',
+                            '#2ecc71',
+                            '#9b59b6'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate transaction list
+        function populateTransactions() {
+            const transactionList = document.getElementById('transactionList');
+            transactionList.innerHTML = '';
+
+            transactions.forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                
+                const isPositive = transaction.amount > 0;
+                const amountClass = isPositive ? 'amount-positive' : 'amount-negative';
+                const amountPrefix = isPositive ? '+' : '';
+
+                transactionItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-desc">${transaction.desc}</div>
+                        <div class="transaction-date">${transaction.date}</div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">
+                        ${amountPrefix}${formatCurrency(Math.abs(transaction.amount))}
+                    </div>
+                `;
+                
+                transactionList.appendChild(transactionItem);
+            });
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Update dashboard stats with animation
+        function updateStats() {
+            const stats = [
+                { id: 'currentBalance', value: 101645791 },
+                { id: 'monthlyIncome', value: 45354143 },
+                { id: 'monthlyExpense', value: 3867763 },
+                { id: 'savingsRate', value: 91.5, suffix: '%' }
+            ];
+
+            stats.forEach(stat => {
+                const element = document.getElementById(stat.id);
+                if (stat.suffix === '%') {
+                    element.textContent = stat.value.toFixed(1) + '%';
+                } else {
+                    element.textContent = formatCurrency(stat.value).replace('₫', '').trim();
+                }
+            });
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            populateTransactions();
+            updateStats();
+        });
+    </script>
+</body>
+</html>

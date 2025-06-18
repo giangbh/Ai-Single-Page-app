@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Phân Tích Yêu Cầu Chuyển Khoản bằng AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-highlight {
+            animation: highlight 1.5s ease-out;
+        }
+        @keyframes highlight {
+            0% { background-color: rgba(74, 222, 128, 0); }
+            30% { background-color: rgba(74, 222, 128, 0.3); }
+            100% { background-color: rgba(74, 222, 128, 0); }
+        }
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-6">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Trình Bóc Tách Thông Tin AI</h1>
+            <p class="mt-2 text-gray-600">Dán nội dung, AI sẽ tự động phân tích chi tiết.</p>
+        </div>
+
+        <!-- Input Area -->
+        <div>
+            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2">Nội dung tin nhắn:</label>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ví dụ: của bạn hết 100k, ck sang tk 2223466 VCB nhé">{{của bạn hết 100k, ck sang tk 2223466 VCB nhé}}</textarea>
+        </div>
+
+        <!-- Action Button -->
+        <button id="parseButton" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-102 flex items-center justify-center gap-2">
+            <span id="buttonText">Phân Tích với AI</span>
+            <div id="spinner" class="spinner hidden"></div>
+        </button>
+
+        <!-- Results Section -->
+        <div class="border-t border-gray-200 pt-6 space-y-4">
+            <h2 class="text-lg font-semibold text-gray-800">Kết quả phân tích:</h2>
+            
+            <div class="flex items-center justify-between">
+                <label for="amount" class="text-gray-600">Số tiền (VND):</label>
+                <input type="text" id="amount" class="w-2/3 p-2 text-right font-semibold text-gray-900 bg-gray-100 rounded-md border-gray-300" readonly>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <label for="accountNumber" class="text-gray-600">Số tài khoản:</label>
+                <input type="text" id="accountNumber" class="w-2/3 p-2 text-right font-semibold text-gray-900 bg-gray-100 rounded-md border-gray-300" readonly>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <label for="bank" class="text-gray-600">Ngân hàng:</label>
+                <input type="text" id="bank" class="w-2/3 p-2 text-right font-semibold text-gray-900 bg-gray-100 rounded-md border-gray-300" readonly>
+            </div>
+        </div>
+
+        <!-- API Call Simulation -->
+        <div class="pt-4">
+             <button id="transferButton" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-102 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none" disabled>
+                Tạo lệnh chuyển khoản (Mô phỏng)
+            </button>
+        </div>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="hidden fixed bottom-5 right-5 bg-red-600 text-white py-3 px-5 rounded-lg shadow-xl">
+            <p id="messageText"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const inputText = document.getElementById('inputText');
+        const parseButton = document.getElementById('parseButton');
+        const buttonText = document.getElementById('buttonText');
+        const spinner = document.getElementById('spinner');
+        const transferButton = document.getElementById('transferButton');
+        const amountEl = document.getElementById('amount');
+        const accountNumberEl = document.getElementById('accountNumber');
+        const bankEl = document.getElementById('bank');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+
+        /**
+         * Clears previous results and highlights.
+         */
+        function resetUI() {
+            amountEl.value = '';
+            accountNumberEl.value = '';
+            bankEl.value = '';
+            transferButton.disabled = true;
+            amountEl.classList.remove('animate-highlight');
+            accountNumberEl.classList.remove('animate-highlight');
+            bankEl.classList.remove('animate-highlight');
+        }
+
+        /**
+         * Updates the UI with the data extracted by the AI.
+         * @param {object} data - The extracted data { amount, accountNumber, bankName }.
+         */
+        function updateResults(data) {
+            if (data.amount) {
+                amountEl.value = new Intl.NumberFormat('vi-VN').format(data.amount);
+                amountEl.classList.add('animate-highlight');
+            } else {
+                amountEl.value = 'Không tìm thấy';
+            }
+
+            if (data.accountNumber) {
+                accountNumberEl.value = data.accountNumber;
+                accountNumberEl.classList.add('animate-highlight');
+            } else {
+                accountNumberEl.value = 'Không tìm thấy';
+            }
+            
+            if (data.bankName) {
+                bankEl.value = data.bankName;
+                bankEl.classList.add('animate-highlight');
+            } else {
+                bankEl.value = 'Không tìm thấy';
+            }
+
+            if (data.amount && data.accountNumber && data.bankName) {
+                transferButton.disabled = false;
+            } else {
+                transferButton.disabled = true;
+            }
+        }
+        
+        /**
+         * Displays an error message on the screen.
+         * @param {string} message - The error message to display.
+         */
+        function showMessage(message, isError = false) {
+            messageText.textContent = message;
+            messageBox.className = `fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-gray-800'}`;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 4000);
+        }
+
+        /**
+         * Sets the loading state for the analysis button.
+         * @param {boolean} isLoading - True to show loading, false otherwise.
+         */
+        function setButtonLoading(isLoading) {
+            if (isLoading) {
+                parseButton.disabled = true;
+                buttonText.textContent = 'Đang phân tích...';
+                spinner.classList.remove('hidden');
+            } else {
+                parseButton.disabled = false;
+                buttonText.textContent = 'Phân Tích với AI';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Main function to call the Gemini API and parse the result.
+         */
+        async function analyzeTextWithAI() {
+            const textToAnalyze = inputText.value;
+            if (!textToAnalyze.trim()) {
+                showMessage("Vui lòng nhập nội dung tin nhắn.", true);
+                return;
+            }
+
+            resetUI();
+            setButtonLoading(true);
+
+            // This is the prompt sent to the AI. It includes instructions and the user's text.
+            const prompt = `Bạn là một trợ lý tài chính chuyên nghiệp. Nhiệm vụ của bạn là đọc và trích xuất thông tin chuyển khoản từ đoạn văn bản sau. Hãy chuẩn hóa tên ngân hàng về tên đầy đủ (ví dụ: VCB thành Vietcombank, TCB thành Techcombank).
+            
+            Văn bản cần phân tích: "${textToAnalyze}"
+            
+            Chỉ trả về kết quả dưới dạng một đối tượng JSON theo cấu trúc đã định nghĩa. Nếu không tìm thấy thông tin nào, hãy để giá trị là null.`;
+
+            // This schema tells the AI exactly what JSON format to return.
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    amount: { type: "NUMBER", description: "Số tiền cần chuyển, tính bằng VND. Ví dụ 100k là 100000." },
+                    accountNumber: { type: "STRING", description: "Chuỗi số tài khoản ngân hàng." },
+                    bankName: { type: "STRING", description: "Tên đầy đủ của ngân hàng sau khi đã chuẩn hóa." }
+                },
+                required: ["amount", "accountNumber", "bankName"]
+            };
+
+            try {
+                // Prepare the payload for the Gemini API
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    }
+                };
+                
+                // IMPORTANT: In a real environment, the API key is handled securely.
+                // In this environment, it's automatically provided.
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Extract the JSON text from the API response
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    const parsedData = JSON.parse(jsonText);
+                    updateResults(parsedData);
+                } else {
+                    throw new Error("Không nhận được nội dung hợp lệ từ AI.");
+                }
+
+            } catch (error) {
+                console.error("Error during AI analysis:", error);
+                showMessage("Đã có lỗi xảy ra trong quá trình phân tích. Vui lòng thử lại.", true);
+                resetUI(); // Clear results on error
+            } finally {
+                setButtonLoading(false);
+            }
+        }
+
+
+        // --- Event Listeners ---
+        parseButton.addEventListener('click', analyzeTextWithAI);
+        
+        transferButton.addEventListener('click', () => {
+            if (transferButton.disabled) return;
+            
+            const data = {
+                amount: amountEl.value,
+                account: accountNumberEl.value,
+                bank: bankEl.value
+            };
+            
+            const message = `Sẵn sàng gọi API chuyển ${data.amount} VND đến STK ${data.account} (${data.bank})`;
+            showMessage(message, false);
+            console.log("Dữ liệu sẵn sàng cho API:", data);
+        });
+
+    </script>
+</body>
+</html>

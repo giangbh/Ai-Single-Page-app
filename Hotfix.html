@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIDV Hotfix Deployment Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(-50px) translateY(-50px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .date {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #2980b9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .jira-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .jira-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid #e74c3c;
+            transition: all 0.3s ease;
+        }
+
+        .jira-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .jira-id {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -37px;
+            top: 20px;
+            width: 15px;
+            height: 15px;
+            background: #3498db;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #3498db;
+        }
+
+        .time {
+            font-weight: bold;
+            color: #2980b9;
+            font-size: 1.1rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+        }
+
+        .team-title {
+            font-weight: bold;
+            color: #2980b9;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .member {
+            background: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .packages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .package-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .package-card:hover {
+            border-color: #27ae60;
+            transform: scale(1.02);
+        }
+
+        .package-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #27ae60;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #856404;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #d4edda 0%, #a8e6a1 100%);
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #155724;
+        }
+
+        .link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .link:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .impact-card {
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid #f39c12;
+        }
+
+        .impact-card.no-impact {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #d5f4e6 0%, #c8e6c9 100%);
+        }
+
+        .impact-card.positive-impact {
+            border-left-color: #3498db;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .jira-cards,
+            .team-grid,
+            .packages {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 BIDV Hotfix Deployment Report</h1>
+            <div class="date">📅 Ngày 23/5/2025</div>
+        </div>
+
+        <div class="content">
+            <!-- Section 1: JIRA Issues -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">1</div>
+                    Các JIRA Issues được Triển Khai
+                </div>
+                <div class="jira-cards">
+                    <div class="jira-card">
+                        <div class="jira-id">🎯 BIDV-57727</div>
+                        <div><strong>Nội dung:</strong> Tối ưu hóa luồng xử lí lô cho hệ thống core thẻ, đảm bảo vận hành hệ thống an toàn ổn định bằng phương án giới hạn mức TPS</div>
+                        <div class="success">✅ Không ảnh hưởng nghiệp vụ - Chỉ giới hạn tốc độ xử lí</div>
+                        <div><strong>File:</strong> fp_V751BIDV_V210MNT_BIDV-57861.tar.gz</div>
+                    </div>
+                    <div class="jira-card">
+                        <div class="jira-id">🎯 BIDV-57692</div>
+                        <div><strong>Nội dung:</strong> Support Card to Add/Modify Hold on STF (đảm bảo các chức năng thêm mới/sửa/xóa bản ghi hold được thực hiện chính xác trong thời điểm STF)</div>
+                        <div class="success">✅ Cho phép giao dịch thêm/sửa/xóa bản ghi hold chính xác trong STF</div>
+                        <div><strong>File:</strong> fp_V751BIDV_V210MNT_BIDV-57855.tar.gz</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Team Responsibilities -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">2</div>
+                    Đầu Mối Thực Hiện & Kiểm Tra
+                </div>
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="team-title">👨‍💼 Nhóm QTCB</div>
+                        <div class="member">🔧 Đặng Tài Vũ (Thực hiện)</div>
+                        <div class="member">✅ Nguyễn Hoàng Chi (Phê duyệt)</div>
+                    </div>
+                    <div class="team-card">
+                        <div class="team-title">🛠️ Trực Kỹ Thuật</div>
+                        <div class="member">👨‍💻 Vũ Ngọc Linh</div>
+                        <div class="member">👨‍💻 Ngô Tiến Cường</div>
+                    </div>
+                    <div class="team-card">
+                        <div class="team-title">🧪 Đội Nghiệp Vụ Kiểm Tra</div>
+                        <div class="member">👨‍💼 Mỵ Trung Tín</div>
+                        <div class="member">💳 Core Thẻ Team</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Deployment Timeline -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">3</div>
+                    Timeline Triển Khai
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="time">⏰ 21:00 - 23/5/2025</div>
+                        <div><strong>Core Profile Deployment</strong></div>
+                        <div>Triển khai các gói HF_28, HF_29 lần lượt</div>
+                        <div>Cập nhật tool giao diện xử lý batch file thẻ</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="time">⏰ 21:00 - 23/5/2025</div>
+                        <div><strong>SOA Coordination</strong></div>
+                        <div>Phối hợp với NHS & TT CNTT</div>
+                        <div>Không ảnh hưởng đến gói cài của Profile</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Testing Schedule -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">4</div>
+                    Lịch Smoke Test Production
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="time">🌅 07:00-08:00 - 24/5/2025</div>
+                        <div><strong>BIDV-57692 Testing</strong></div>
+                        <div><strong>Team:</strong> Chử Thị Phương Thảo, Vũ Duy Tùng (Core Thẻ)</div>
+                        <div><strong>Scope:</strong> Kiểm tra thêm/sửa/xóa bản ghi hold</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="time">🌞 13:00-14:00 - 24/5/2025</div>
+                        <div><strong>BIDV-57727 Testing</strong></div>
+                        <div><strong>Team:</strong> Trương Thanh Huyền, Đinh Ngọc Hòa, Nguyễn Hoài Nam</div>
+                        <div><strong>Scope:</strong> Kiểm tra tốc độ xử lí (đợi phiên chiều có giao dịch lớn)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Package Information -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">5</div>
+                    Thông Tin Gói Cài Đặt
+                </div>
+                <div class="packages">
+                    <div class="package-card">
+                        <div class="package-title">📦 HF_28 Package</div>
+                        <div class="file-info">
+                            <div><strong>Component:</strong> Profile Host</div>
+                            <div><strong>File:</strong> fp_V751BIDV_V210MNT_BIDV-57855.tar.gz</div>
+                            <div><strong>Location:</strong> /data/release/CoreBIDV/PROD_Mirror/2025-05-14/v2.10_R20_HF28/ProfileFP/</div>
+                        </div>
+                        <div class="warning">
+                            <strong>🔄 Revert:</strong> RecordPHLD.* backup files
+                        </div>
+                    </div>
+                    <div class="package-card">
+                        <div class="package-title">📦 HF_29 Package</div>
+                        <div class="file-info">
+                            <div><strong>Component:</strong> Profile Host</div>
+                            <div><strong>File:</strong> fp_V751BIDV_V210MNT_BIDV-57861.tar.gz</div>
+                            <div><strong>Location:</strong> /data/release/CoreBIDV/PROD_Mirror/2025-05-15/v2.10_R20_HF29/ProfileFP/</div>
+                        </div>
+                        <div class="warning">
+                            <strong>🔄 Revert:</strong> ZBCHCARDFPOST.*, ZCARDPAYIMP.* backup files
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Impact Assessment -->
+            <div class="section">
+                <div class="section-title">
+                    <div class="icon">📊</div>
+                    Đánh Giá Tác Động
+                </div>
+                <div class="impact-grid">
+                    <div class="impact-card no-impact">
+                        <div><strong>🎯 BIDV-57727</strong></div>
+                        <div>✅ Không ảnh hưởng nghiệp vụ</div>
+                        <div>⚡ Chỉ giới hạn TPS để đảm bảo an toàn</div>
+                    </div>
+                    <div class="impact-card positive-impact">
+                        <div><strong>🎯 BIDV-57692</strong></div>
+                        <div>📈 Cải thiện tính năng STF</div>
+                        <div>🔧 Hỗ trợ thao tác hold record chính xác</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="section" style="text-align: center; border-left: 5px solid #27ae60;">
+                <div class="section-title" style="justify-content: center;">
+                    <div class="icon">✅</div>
+                    Trạng Thái Triển Khai
+                </div>
+                <div style="font-size: 1.2rem; color: #27ae60; font-weight: bold;">
+                    🚀 Sẵn sàng triển khai theo lịch trình
+                </div>
+                <div style="margin-top: 15px; opacity: 0.7;">
+                    📋 Tất cả các bước chuẩn bị đã hoàn tất
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

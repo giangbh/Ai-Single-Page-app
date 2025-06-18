@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic Tương tác: Tối ưu hóa Hệ thống Ứng dụng BIDV</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&display=swap');
+
+        :root {
+            --bidv-blue: #004481;
+            --bidv-blue-light: #0056a3;
+            --bidv-accent: #00a1e0;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --bg-light: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .infographic-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--bidv-blue);
+            color: var(--text-light);
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.8em;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .section {
+            padding: 50px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--bidv-blue);
+            margin-bottom: 15px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: #6c757d;
+            max-width: 700px;
+            margin: 0 auto 50px auto;
+        }
+        
+        /* Section 1: Hiện trạng */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .stat-item {
+            background: #e7f3ff;
+            padding: 30px 20px;
+            border-radius: 12px;
+            border: 2px solid #bde0fe;
+        }
+
+        .stat-number {
+            font-size: 4em;
+            font-weight: 900;
+            color: var(--bidv-accent);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: var(--bidv-blue-light);
+            margin-top: 10px;
+        }
+
+        .pain-points-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .pain-point {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid #ffc107;
+        }
+        .pain-point-icon {
+            font-size: 2.5em;
+        }
+
+        /* Section 2: Tần suất sử dụng */
+        .chart-container-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+        }
+
+        /* Section 3: Nguyên tắc & Mô hình */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .model-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+        .model-header {
+            background: var(--bidv-blue-light);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            text-align: center;
+        }
+        .model-body {
+            padding: 25px;
+            background: #fff;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+        }
+        .model-card.active .model-body {
+            padding: 25px;
+            max-height: 200px;
+        }
+
+        /* Section 4: Lộ trình */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: var(--bidv-accent);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -14px;
+            background-color: white;
+            border: 4px solid var(--bidv-accent);
+            top: 25px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .timeline-left {
+            left: 0;
+        }
+        .timeline-right {
+            left: 50%;
+        }
+        .timeline-left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 32px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid white;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent white;
+        }
+        .timeline-right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 32px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid white;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent white transparent transparent;
+        }
+        .timeline-right::after {
+            left: -14px;
+        }
+        .timeline-content {
+            padding: 20px 30px;
+            background-color: white;
+            position: relative;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .timeline-content h3 {
+            margin-top: 0;
+            color: var(--bidv-blue-light);
+        }
+        .timeline-content p {
+            font-size: 0.95em;
+        }
+        .timeline-content strong {
+            color: var(--text-dark);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bidv-blue);
+            color: var(--text-light);
+            text-align: center;
+            padding: 40px;
+        }
+        footer h2 {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+        }
+
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .timeline-item::before {
+                left: 60px;
+                border: medium solid white;
+                border-width: 10px 10px 10px 0;
+                border-color: transparent white transparent transparent;
+            }
+            .timeline-left::after, .timeline-right::after {
+                left: 18px;
+            }
+            .timeline-right {
+                left: 0%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="infographic-container">
+    <header>
+        <h1>Tối ưu hóa Hệ thống Ứng dụng Tác nghiệp BIDV</h1>
+        <p>Tổng quan, Đánh giá & Lộ trình Chuyển đổi | Báo cáo Tổ Công tác - 05/2025</p>
+    </header>
+
+    <section class="section">
+        <h2 class="section-title">1. Hiện trạng: Bức tranh Toàn cảnh</h2>
+        <p class="section-subtitle">Những con số cho thấy sự phức tạp và nhu cầu cấp thiết phải tối ưu hóa hệ thống hiện tại.</p>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" data-target="82">0</div>
+                <div class="stat-label">Ứng dụng Tác nghiệp</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="30">0</div>
+                <div class="stat-label">Ứng dụng / Cán bộ</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="50">0</div>
+                <div class="stat-label">Ứng dụng / Giao dịch viên</div>
+            </div>
+        </div>
+        <h3 style="text-align: center; color: var(--bidv-blue-light); margin-top: 50px;">Các "Nỗi Đau" Chính</h3>
+        <div class="pain-points-grid">
+            <div class="pain-point">
+                <div class="pain-point-icon">🧩</div>
+                <div><strong>Phân mảnh & Chồng chéo:</strong> Nhiều hệ thống có chức năng tương đồng được xây dựng độc lập.</div>
+            </div>
+            <div class="pain-point">
+                <div class="pain-point-icon">📉</div>
+                <div><strong>Trải nghiệm rời rạc:</strong> Giao diện không thân thiện, không được thiết kế theo hành trình người dùng.</div>
+            </div>
+            <div class="pain-point">
+                <div class="pain-point-icon">⚙️</div>
+                <div><strong>"Di sản" công nghệ:</strong> Khó khăn trong việc nâng cấp do vướng các công nghệ cũ (legacy).</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="background-color: var(--bg-light);">
+        <h2 class="section-title">2. Cơ hội: Phân tích Tần suất Sử dụng</h2>
+        <p class="section-subtitle">Phân tích hơn 190 ứng dụng chỉ ra cơ hội lớn để quy hoạch. Nhóm "Ít sử dụng" chiếm tỷ trọng lớn, là đối tượng chính cần được gom gộp.</p>
+        <div class="chart-container-wrapper">
+            <div class="chart-container">
+                <canvas id="usageFrequencyChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">3. Nguyên tắc & Mô hình Dẫn dắt</h2>
+        <p class="section-subtitle">Áp dụng các phương pháp luận hàng đầu thế giới để tái kiến trúc hệ thống, hướng tới sự tinh gọn và hiệu quả. (Nhấp vào từng mục để xem chi tiết)</p>
+        <div class="models-grid">
+            <div class="model-card">
+                <div class="model-header">Nguyên tắc MECE</div>
+                <div class="model-body">"Không trùng lặp, Bao phủ đầy đủ". Đây là nguyên tắc phân rã hệ thống một cách logic, đảm bảo các chức năng không chồng chéo và bao quát toàn bộ yêu cầu nghiệp vụ.</div>
+            </div>
+            <div class="model-card">
+                <div class="model-header">Kiến trúc Phân lớp</div>
+                <div class="model-body">Chia ứng dụng theo tốc độ thay đổi: <strong>Lớp Đổi mới</strong> (thay đổi nhanh), <strong>Lớp Khác biệt</strong> (thay đổi vừa phải), và <strong>Lớp Cốt lõi</strong> (thay đổi chậm), giúp quản lý danh mục hiệu quả.</div>
+            </div>
+            <div class="model-card">
+                <div class="model-header">Mô hình Sản phẩm & Nền tảng</div>
+                <div class="model-body">Chuyển dịch từ tư duy "Dự án" sang "Sản phẩm", tập trung thiết kế phần mềm dựa trên tổng thể trải nghiệm và hành trình của người dùng cuối.</div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section" style="background-color: var(--bg-light);">
+        <h2 class="section-title">4. Lộ trình Chiến lược</h2>
+        <p class="section-subtitle">Một kế hoạch 3 giai đoạn để hướng tới một hệ thống tinh gọn, linh hoạt và hiệu quả hơn.</p>
+        <div class="timeline">
+            <div class="timeline-item timeline-left">
+                <div class="timeline-content">
+                    <h3>1️⃣ Giai đoạn 1: CHUẨN HÓA</h3>
+                    <p><strong>Thời gian:</strong> Q2-Q3/2025</p>
+                    <p><strong>Hành động:</strong> Xây dựng CSDL chung về hành trình người dùng và danh mục chức năng của 190+ PMUD.</p>
+                    <p><strong>Kết quả:</strong> Có một "bản đồ" duy nhất, chính xác về toàn bộ năng lực hệ thống.</p>
+                </div>
+            </div>
+            <div class="timeline-item timeline-right">
+                <div class="timeline-content">
+                    <h3>2️⃣ Giai đoạn 2: QUY HOẠCH & GOM GỘP</h3>
+                     <p><strong>Thời gian:</strong> Q2-Q3/2025</p>
+                    <p><strong>Hành động:</strong> Gom gộp PMUD tần suất thấp, phát triển các nền tảng cốt lõi (Smart Counter Hub, CRM...).</p>
+                    <p><strong>Kết quả:</strong> Giảm số lượng ứng dụng, tạo ra các trung tâm tác nghiệp hợp nhất, tăng hiệu quả.</p>
+                </div>
+            </div>
+            <div class="timeline-item timeline-left">
+                <div class="timeline-content">
+                    <h3>3️⃣ Giai đoạn 3: XÂY DỰNG KIẾN TRÚC TỔNG THỂ</h3>
+                     <p><strong>Thời gian:</strong> Dài hạn</p>
+                    <p><strong>Hành động:</strong> Thiết kế kiến trúc CNTT tổng thể bám sát hành trình khách hàng và mô hình Sản phẩm & Nền tảng.</p>
+                    <p><strong>Kết quả:</strong> Hệ thống linh hoạt, có khả năng mở rộng, đáp ứng nhanh chóng các yêu cầu kinh doanh.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <h2>✨ Tầm nhìn</h2>
+        <p>Xây dựng một hệ thống CNTT tinh gọn, linh hoạt, và lấy người dùng làm trung tâm, <br>nâng cao năng suất lao động và năng lực cạnh tranh cho BIDV.</p>
+    </footer>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Number counting animation
+    const counters = document.querySelectorAll('.stat-number');
+    const speed = 200; // The lower the slower
+
+    const animateCounter = (counter) => {
+        const target = +counter.getAttribute('data-target');
+        const updateCount = () => {
+            const count = +counter.innerText;
+            const inc = target / speed;
+
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(updateCount, 10);
+            } else {
+                counter.innerText = target;
+            }
+        };
+        updateCount();
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    counters.forEach(counter => {
+        observer.observe(counter);
+    });
+
+    // 2. Chart.js interactive chart
+    const ctx = document.getElementById('usageFrequencyChart').getContext('2d');
+    const usageFrequencyChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Hàng ngày (Cốt lõi)', 'Hàng tuần (Hỗ trợ)', 'Hàng tháng (Cần gom gộp)'],
+            datasets: [{
+                label: 'Tần suất sử dụng',
+                // Averaged data for simplicity in infographic
+                data: [46, 16, 38],
+                backgroundColor: [
+                    'rgba(0, 86, 163, 0.8)',
+                    'rgba(0, 161, 224, 0.8)',
+                    'rgba(200, 200, 200, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(0, 86, 163, 1)',
+                    'rgba(0, 161, 224, 1)',
+                    'rgba(150, 150, 150, 1)'
+                ],
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. Model cards collapsible
+    const modelCards = document.querySelectorAll('.model-card');
+    modelCards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('active');
+        });
+    });
+});
+</script>
+
+</body>
+</html>

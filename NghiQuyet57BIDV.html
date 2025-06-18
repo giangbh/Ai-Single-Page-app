@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Nghị quyết 488/NQ-BIDV về Khoa học Công nghệ & Chuyển đổi số</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap');
+
+        :root {
+            --bidv-blue-dark: #004481;
+            --bidv-blue-light: #0056a3;
+            --bidv-accent: #00a1e0;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-dark: #212529;
+            --text-light-gray: #6c757d;
+            --border-color: #e9ecef;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            padding: 25px;
+        }
+
+        .dashboard-header {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .dashboard-header h1 {
+            font-size: 2em;
+            font-weight: 800;
+            color: var(--bidv-blue-dark);
+            margin: 0 0 5px 0;
+            text-align: center;
+        }
+        
+        .dashboard-header p {
+            font-size: 1.1em;
+            color: var(--text-light-gray);
+            margin: 0;
+            text-align: center;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 25px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: var(--bidv-blue-dark);
+            margin: 0 0 20px 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .vision-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--bidv-blue-dark), var(--bidv-blue-light));
+            color: white;
+            text-align: center;
+        }
+        .vision-card .card-title {
+            color: white;
+            border-bottom-color: rgba(255,255,255,0.3);
+        }
+         .vision-card p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+
+        .targets-card {
+            grid-column: 1 / -1;
+        }
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .target-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .target-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--bidv-accent);
+        }
+        .target-label {
+            font-size: 0.9em;
+            color: var(--text-light-gray);
+            margin-top: 5px;
+            min-height: 40px;
+        }
+
+        .chart-card {
+            grid-column: 1 / 6;
+            min-height: 400px;
+        }
+        .solutions-card {
+            grid-column: 6 / 13;
+        }
+
+        .tabs-nav {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 500;
+            color: var(--text-light-gray);
+            position: relative;
+            transition: color 0.3s;
+        }
+        .tab-button.active {
+            color: var(--bidv-blue-dark);
+            font-weight: 700;
+        }
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--bidv-blue-dark);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-content ul {
+            list-style-type: '✓ ';
+            padding-left: 20px;
+        }
+        .tab-content li {
+            margin-bottom: 10px;
+        }
+
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .chart-card, .solutions-card {
+                grid-column: 1 / -1;
+            }
+        }
+         @media (max-width: 768px) {
+            .tabs-nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1>Dashboard Nghị quyết 488/NQ-BIDV</h1>
+        <p>Về việc đẩy mạnh phát triển KHCN, đổi mới sáng tạo và chuyển đổi số tại BIDV</p>
+    </header>
+
+    <div class="main-content">
+        <div class="dashboard-card vision-card">
+            <h2 class="card-title">Tầm nhìn đến năm 2045</h2>
+            <p>BIDV trở thành một định chế tài chính số toàn diện, tích hợp Ngân hàng - Công nghệ, dẫn đầu khu vực Đông Nam Á về sáng tạo tài chính, năng lực dữ liệu và trải nghiệm khách hàng, đóng vai trò trung tâm trong hệ sinh thái tài chính số quốc gia.</p>
+        </div>
+
+        <div class="dashboard-card targets-card">
+            <h2 class="card-title">Các chỉ tiêu cụ thể đến năm 2030</h2>
+            <div class="targets-grid">
+                <div class="target-item">
+                    <div class="target-value" data-target="100">%</div>
+                    <div class="target-label">Làm chủ nền tảng công nghệ chủ chốt</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="8">≥ %</div>
+                    <div class="target-label">Chi phí CNTT & CĐS / Tổng chi phí</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="1">≥ %</div>
+                    <div class="target-label">Kinh phí R&D / Lợi nhuận sau thuế</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="60">≥ %</div>
+                    <div class="target-label">Ứng dụng thiết yếu có hỗ trợ bởi AI</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="70">≥ %</div>
+                    <div class="target-label">Năng lực CNTT triển khai trên Cloud</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="90">≥ %</div>
+                    <div class="target-label">Cán bộ quản lý được đào tạo năng lực số</div>
+                </div>
+                 <div class="target-item">
+                    <div class="target-value" data-target="95">≥ %</div>
+                    <div class="target-label">Giao dịch thực hiện trên kênh số</div>
+                </div>
+                 <div class="target-item">
+                    <div class="target-value" data-target="100">%</div>
+                    <div class="target-label">Dịch vụ ngân hàng cơ bản toàn trình số</div>
+                </div>
+                <div class="target-item">
+                    <div class="target-value" data-target="100">%</div>
+                    <div class="target-label">Khách hàng kênh số tích hợp dữ liệu dân cư</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card chart-card">
+            <h2 class="card-title">Biểu đồ Mục tiêu 2030</h2>
+            <canvas id="targetsRadarChart"></canvas>
+        </div>
+        
+        <div class="dashboard-card solutions-card">
+            <h2 class="card-title">5 Nhóm Nhiệm vụ & Giải pháp chính</h2>
+            <nav class="tabs-nav">
+                <button class="tab-button active" data-tab="1">Hạ tầng</button>
+                <button class="tab-button" data-tab="2">Sản phẩm</button>
+                <button class="tab-button" data-tab="3">Nhân lực</button>
+                <button class="tab-button" data-tab="4">Bảo mật</button>
+                <button class="tab-button" data-tab="5">Lãnh đạo</button>
+            </nav>
+            <div class="tab-content active" id="tab-1">
+                <h4>1. Xây dựng hạ tầng số, dữ liệu và nền tảng công nghệ</h4>
+                <ul>
+                    <li>Xây dựng hạ tầng hiện đại, bảo mật, mô hình active-active, ứng dụng Hybrid Multi-Cloud.</li>
+                    <li>Xây dựng dữ liệu như một tài sản chiến lược, triển khai kiến trúc LakeHouse và Customer 360°.</li>
+                    <li>Ứng dụng toàn diện AI/Generative AI, triển khai nền tảng AI nội bộ.</li>
+                    <li>Xây dựng nền tảng công nghệ mở, linh hoạt, áp dụng kiến trúc Microservices, API và event-driven.</li>
+                </ul>
+            </div>
+            <div class="tab-content" id="tab-2">
+                 <h4>2. Đổi mới sáng tạo trong sản phẩm dịch vụ</h4>
+                <ul>
+                    <li>Thiết kế sản phẩm tài chính tích hợp, đa dịch vụ (ngân hàng, bảo hiểm, chứng khoán...).</li>
+                    <li>Cá nhân hóa dịch vụ dựa trên dữ liệu bằng AI và Big Data.</li>
+                    <li>Phát triển hệ sinh thái ngân hàng mở (Open Banking) và ngân hàng nhúng (BaaS).</li>
+                    <li>Làm chủ công nghệ lõi và tăng tốc đổi mới sản phẩm theo mô hình Agile-DevSecOps.</li>
+                </ul>
+            </div>
+            <div class="tab-content" id="tab-3">
+                 <h4>3. Phát triển nguồn nhân lực và văn hóa số</h4>
+                <ul>
+                    <li>Thu hút và trọng dụng nhân tài công nghệ với cơ chế đãi ngộ linh hoạt.</li>
+                    <li>Ươm mầm sáng tạo qua mô hình Digital Lab, Innovation Hub.</li>
+                    <li>Lan tỏa văn hóa đổi mới – chủ động – sáng tạo, phát động khởi nghiệp nội bộ.</li>
+                    <li>Đào tạo toàn diện năng lực số, hợp tác chiến lược với Big Tech, Fintech và các trường đại học.</li>
+                </ul>
+            </div>
+            <div class="tab-content" id="tab-4">
+                 <h4>4. Bảo đảm an ninh mạng, an toàn thông tin</h4>
+                <ul>
+                    <li>Xây dựng hệ thống phòng thủ nhiều lớp, toàn diện, hướng tới mức độ trưởng thành ATTT 4.5/5.</li>
+                    <li>Áp dụng mô hình "Zero Trust" và bảo mật thời gian thực cho các hệ thống cốt lõi.</li>
+                    <li>Tăng cường bảo mật khi kết nối dữ liệu quốc gia, bảo vệ dữ liệu cá nhân theo chuẩn quốc gia.</li>
+                    <li>Chủ động phòng chống tấn công mạng, phối hợp chặt chẽ với các cơ quan an ninh.</li>
+                </ul>
+            </div>
+            <div class="tab-content" id="tab-5">
+                 <h4>5. Tăng cường sự lãnh đạo và hoàn thiện cơ chế</h4>
+                <ul>
+                    <li>Người đứng đầu chịu trách nhiệm cao nhất trong việc chỉ đạo và triển khai Nghị quyết.</li>
+                    <li>Xây dựng chính sách "đãi sỹ, chiêu hiền" thu hút nhân lực chất lượng cao.</li>
+                    <li>Hoàn thiện cơ chế mua sắm, triển khai dự án công nghệ phù hợp với chủ trương mới.</li>
+                    <li>Khuyến khích đổi mới, hiện đại hóa vận hành và quản trị dựa trên dữ liệu thời gian thực.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // KPI Number Counting Animation
+    const counters = document.querySelectorAll('.target-value');
+    const speed = 200;
+
+    const animateCounter = (counter) => {
+        const target = +counter.getAttribute('data-target');
+        const suffix = counter.innerText.replace(/[0-9.,+>≥]/g, '');
+        const prefix = counter.innerText.match(/[+>≥]/g) || '';
+
+        const updateCount = () => {
+            const count = +counter.innerText.replace(suffix, '').replace(prefix, '');
+            const inc = target / speed;
+
+            if (count < target) {
+                counter.innerText = prefix + Math.ceil(count + inc) + suffix;
+                setTimeout(updateCount, 15);
+            } else {
+                counter.innerText = prefix + target + suffix;
+            }
+        };
+        updateCount();
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    counters.forEach(counter => observer.observe(counter));
+
+    // Radar Chart for Targets
+    const radarCtx = document.getElementById('targetsRadarChart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: [
+                'Làm chủ nền tảng (%)',
+                'Giao dịch kênh số (%)',
+                'DVNH cơ bản số (%)',
+                'Tích hợp DLDC (%)',
+                'Đào tạo QL số (%)',
+                'Ứng dụng AI (%)',
+                'Năng lực trên Cloud (%)'
+            ],
+            datasets: [{
+                label: 'Mục tiêu đến 2030',
+                data: [100, 95, 100, 100, 90, 60, 70],
+                fill: true,
+                backgroundColor: 'rgba(0, 161, 224, 0.2)',
+                borderColor: 'rgb(0, 161, 224)',
+                pointBackgroundColor: 'rgb(0, 161, 224)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(0, 161, 224)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                    grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                    pointLabels: { 
+                        font: { size: 11 }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: {
+                        backdropColor: 'transparent',
+                        stepSize: 20
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Tabs for Solutions
+    const tabsNav = document.querySelector('.tabs-nav');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabsNav.addEventListener('click', (e) => {
+        const id = e.target.dataset.tab;
+        if (id) {
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            e.target.classList.add('active');
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            const element = document.getElementById('tab-' + id);
+            element.classList.add('active');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
